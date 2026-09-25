@@ -1,9 +1,11 @@
 import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
 
 /// Gestion de accso a la camara
 
 class NativeCameraManager {
   CameraController? _controller;
+  final ImagePicker _picker = ImagePicker();
 
   CameraController? get controller => _controller;
   bool get isInitialized => _controller?.value.isInitialized ?? false;
@@ -34,5 +36,9 @@ class NativeCameraManager {
   Future<void> dispose() async{
     await _controller?.dispose();
     _controller =  null;
+  }
+
+  Future<XFile?> pickFromGallery(){
+    return _picker.pickImage(source: ImageSource.gallery);
   }
 }
