@@ -44,4 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+/android/build/
 
