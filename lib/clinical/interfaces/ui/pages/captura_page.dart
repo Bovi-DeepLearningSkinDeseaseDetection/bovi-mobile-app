@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../../../../shared/infrastructure/camera/native_camera_manager.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../domain/model/valueobjects/origen_imagen.dart';
+import '../../../../shared/infrastructure/persistence/preferences/preferencias_app.dart';
+import '../widgets/ayuda_encuadre.dart';
+import '../widgets/marco_guia.dart';
 
 class CapturaPage extends StatefulWidget {
   const CapturaPage({super.key});
@@ -14,6 +17,7 @@ class CapturaPage extends StatefulWidget {
 
 class _CapturaPageState extends State<CapturaPage> with WidgetsBindingObserver {
   final _camara = NativeCameraManager();
+  final _preferencias = PreferenciasApp();
   bool _cargando = true;
   bool _ocupado = false;
   String? _error;
@@ -23,6 +27,8 @@ class _CapturaPageState extends State<CapturaPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _iniciarCamara();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _mostrarAyudaSiEsPrimeraVez());
   }
 
   Future<void> _iniciarCamara() async {
@@ -38,6 +44,13 @@ class _CapturaPageState extends State<CapturaPage> with WidgetsBindingObserver {
           : 'No se pudo iniciar la cámara.';
     }
     if (mounted) setState(() => _cargando = false);
+  }
+
+  Future<void> _mostrarAyudaSiEsPrimeraVez() async {
+    if (await _preferencias.ayudaEncuadreVista()) return;
+    if (!mounted) return;
+    await mostrarAyudaEncuadre(context);
+    await _preferencias.marcarAyudaEncuadreVista();
   }
 
   // Libera la cámara al salir de la app y la recupera al volver
@@ -106,7 +119,16 @@ class _CapturaPageState extends State<CapturaPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(title: const Text('Bovi')),
+      appBar: AppBar(
+        title: const Text('Bovi'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Cómo tomar la foto',
+            onPressed: () => mostrarAyudaEncuadre(context),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(child: _visor()),
@@ -140,7 +162,13 @@ class _CapturaPageState extends State<CapturaPage> with WidgetsBindingObserver {
     if (_cargando || !_camara.isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return Center(child: CameraPreview(_camara.controller!));
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Center(child: CameraPreview(_camara.controller!)),
+        const IgnorePointer(child: MarcoGuia()),
+      ],
+    );
   }
 
   Widget _controles() {
