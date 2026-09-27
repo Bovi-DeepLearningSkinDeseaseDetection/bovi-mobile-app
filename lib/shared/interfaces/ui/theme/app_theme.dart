@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import './app_colors.dart';
 
-/// Tema visual de Bovi
+/// Bovi visual theme.
 
 class AppTheme {
   AppTheme._();
@@ -10,50 +10,45 @@ class AppTheme {
     final base = ThemeData.light(useMaterial3: true);
 
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.fondo,
+      scaffoldBackgroundColor: AppColors.background,
 
       colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.verdePrincipal,
-          primary: AppColors.verdePrincipal,
-          secondary: AppColors.verdeClaro,
-          surface: AppColors.blanco,
-          error: AppColors.estadoLesion,
+        seedColor: AppColors.primaryGreen,
+        primary: AppColors.primaryGreen,
+        secondary: AppColors.lightGreen,
+        surface: AppColors.white,
+        error: AppColors.lesionStatus,
       ),
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.blanco,
-        foregroundColor: AppColors.textoPrincipal,
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.primaryText,
         elevation: 0,
         centerTitle: false,
       ),
 
-      // Boton principal
+      // Primary button.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.verdePrincipal,
-          foregroundColor: AppColors.blanco,
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: AppColors.white,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
       cardTheme: CardThemeData(
-        color: AppColors.blanco,
+        color: AppColors.white,
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.blanco,
-        indicatorColor: AppColors.verdeClaro.withValues(alpha: 0.2),
+        backgroundColor: AppColors.white,
+        indicatorColor: AppColors.lightGreen.withValues(alpha: 0.2),
         height: 64,
       ),
 
@@ -61,21 +56,15 @@ class AppTheme {
         headlineMedium: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w700,
-          color: AppColors.textoPrincipal,
+          color: AppColors.primaryText,
         ),
         titleLarge: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: AppColors.textoPrincipal,
+          color: AppColors.primaryText,
         ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          color: AppColors.textoPrincipal,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: AppColors.textoPrincipal,
-        ),
+        bodyLarge: TextStyle(fontSize: 16, color: AppColors.primaryText),
+        bodyMedium: TextStyle(fontSize: 14, color: AppColors.primaryText),
       ),
     );
   }

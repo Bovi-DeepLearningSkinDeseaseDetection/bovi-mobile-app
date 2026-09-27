@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'shared/interfaces/ui/theme/app_theme.dart';
-import 'clinical/interfaces/ui/pages/captura_page.dart';
+import 'clinical/interfaces/ui/pages/capture_page.dart';
 
-void main(){
+void main() {
   runApp(const BoviApp());
 }
 
-class BoviApp extends StatelessWidget{
+class BoviApp extends StatelessWidget {
   const BoviApp({super.key});
 
   @override
@@ -15,7 +15,7 @@ class BoviApp extends StatelessWidget{
       title: 'Bovi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const CapturaPage(),
+      home: const CapturePage(),
     );
   }
 }

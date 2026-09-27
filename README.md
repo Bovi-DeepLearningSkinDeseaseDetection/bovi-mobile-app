@@ -1,17 +1,21 @@
-# bovi_mobile
+# Bovi Mobile App
 
-A new Flutter project.
+Bovi is a Flutter application for capturing livestock skin lesion photos for
+assessment. It supports taking a photo with the device camera or selecting one
+from the gallery, with on-screen framing guidance.
 
-## Getting Started
+## Development
 
-This project is a starting point for a Flutter application.
+Install the Flutter SDK required by `pubspec.yaml`, then run:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter analyze
+flutter test
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+To run the app on a connected device:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run
+```

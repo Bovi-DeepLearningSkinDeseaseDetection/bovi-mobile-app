@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 
-/// Ayuda con ejemplos de foto correcta e incorrecta
-Future<void> mostrarAyudaEncuadre(BuildContext context) {
+/// Shows examples of well-framed and poorly-framed photos.
+Future<void> showFramingHelp(BuildContext context) {
   return showDialog(
     context: context,
-    builder: (ctx) => Dialog(
+    builder: (context) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -13,32 +14,34 @@ Future<void> mostrarAyudaEncuadre(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('¿Cómo tomar una buena foto?',
-                style: Theme.of(ctx).textTheme.titleLarge),
+            Text(
+              'How to take a good photo',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
             const Row(
               children: [
                 Expanded(
-                  child: _Ejemplo(
-                    asset: 'assets/images/ejemplo_correcto.jpg',
-                    correcto: true,
-                    texto: 'Cerca, centrada y con buena luz',
+                  child: _ExamplePhoto(
+                    asset: 'assets/images/example_correct.jpg',
+                    isCorrect: true,
+                    description: 'Close, centered, and well lit',
                   ),
                 ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: _Ejemplo(
-                    asset: 'assets/images/ejemplo_incorrecto.jpg',
-                    correcto: false,
-                    texto: 'Lejos, borrosa u oscura',
+                  child: _ExamplePhoto(
+                    asset: 'assets/images/example_incorrect.jpg',
+                    isCorrect: false,
+                    description: 'Far away, blurry, or too dark',
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Entendido'),
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Got it'),
             ),
           ],
         ),
@@ -47,15 +50,15 @@ Future<void> mostrarAyudaEncuadre(BuildContext context) {
   );
 }
 
-class _Ejemplo extends StatelessWidget {
+class _ExamplePhoto extends StatelessWidget {
   final String asset;
-  final bool correcto;
-  final String texto;
+  final bool isCorrect;
+  final String description;
 
-  const _Ejemplo({
+  const _ExamplePhoto({
     required this.asset,
-    required this.correcto,
-    required this.texto,
+    required this.isCorrect,
+    required this.description,
   });
 
   @override
@@ -71,9 +74,11 @@ class _Ejemplo extends StatelessWidget {
               asset,
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => Container(
-                color: AppColors.grisSuave,
-                child: const Icon(Icons.image_outlined,
-                    color: AppColors.textoSecundario),
+                color: AppColors.softGray,
+                child: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.secondaryText,
+                ),
               ),
             ),
           ),
@@ -83,13 +88,15 @@ class _Ejemplo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              correcto ? Icons.check_circle : Icons.cancel,
+              isCorrect ? Icons.check_circle : Icons.cancel,
               size: 18,
-              color: correcto ? AppColors.estadoSaludable : AppColors.estadoLesion,
+              color: isCorrect
+                  ? AppColors.healthyStatus
+                  : AppColors.lesionStatus,
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: Text(texto, style: const TextStyle(fontSize: 13)),
+              child: Text(description, style: const TextStyle(fontSize: 13)),
             ),
           ],
         ),
