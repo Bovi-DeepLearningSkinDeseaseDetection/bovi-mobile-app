@@ -12,14 +12,21 @@ void main() {
     expect(AppTheme.light.colorScheme.primary, AppColors.primaryGreen);
   });
 
-  testWidgets('The guide displays the framing instructions', (tester) async {
+  // HU03, scenario 1: visible guide.
+  testWidgets('The guide displays the framing instructions and distance', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: GuideFrame())),
     );
     expect(find.text(GuideFrame.instructionText), findsOneWidget);
+    expect(find.text(GuideFrame.distanceText), findsOneWidget);
   });
 
-  testWidgets('The framing help is displayed in English', (tester) async {
+  // HU03, scenario 2: first-time help with examples that can be closed.
+  testWidgets('The framing help is displayed in Spanish and can be closed', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -35,8 +42,13 @@ void main() {
     await tester.tap(find.text('Open help'));
     await tester.pumpAndSettle();
 
-    expect(find.text('How to take a good photo'), findsOneWidget);
-    expect(find.text('Got it'), findsOneWidget);
+    expect(find.text('Cómo tomar una buena foto'), findsOneWidget);
+    expect(find.text('Cerca, centrada y bien iluminada'), findsOneWidget);
+    expect(find.text('Lejos, borrosa o muy oscura'), findsOneWidget);
+
+    await tester.tap(find.text('Entendido'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cómo tomar una buena foto'), findsNothing);
   });
 
   test('An existing help preference is migrated to the English key', () async {

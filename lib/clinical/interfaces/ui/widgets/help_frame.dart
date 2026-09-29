@@ -15,7 +15,7 @@ Future<void> showFramingHelp(BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'How to take a good photo',
+              'Cómo tomar una buena foto',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -25,7 +25,7 @@ Future<void> showFramingHelp(BuildContext context) {
                   child: _ExamplePhoto(
                     asset: 'assets/images/example_correct.jpg',
                     isCorrect: true,
-                    description: 'Close, centered, and well lit',
+                    description: 'Cerca, centrada y bien iluminada',
                   ),
                 ),
                 SizedBox(width: 12),
@@ -33,7 +33,7 @@ Future<void> showFramingHelp(BuildContext context) {
                   child: _ExamplePhoto(
                     asset: 'assets/images/example_incorrect.jpg',
                     isCorrect: false,
-                    description: 'Far away, blurry, or too dark',
+                    description: 'Lejos, borrosa o muy oscura',
                   ),
                 ),
               ],
@@ -41,7 +41,7 @@ Future<void> showFramingHelp(BuildContext context) {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Got it'),
+              child: const Text('Entendido'),
             ),
           ],
         ),

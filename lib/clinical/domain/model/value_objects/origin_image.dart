@@ -1,7 +1,7 @@
 /// Source of an image being evaluated.
 enum ImageOrigin {
-  camera('Camera'),
-  gallery('Gallery');
+  camera('Cámara'),
+  gallery('Galería');
 
   const ImageOrigin(this.label);
 

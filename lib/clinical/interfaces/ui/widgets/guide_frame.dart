@@ -6,46 +6,33 @@ import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 class GuideFrame extends StatelessWidget {
   const GuideFrame({super.key});
 
-  static const instructionText =
-      'Move within 30–60 cm and center the lesion in the frame';
+  static const instructionText = 'Encuadre la lesión dentro del marco';
+  static const distanceText = '30 - 60 cm';
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final frameSize = (constraints.maxWidth * 0.7).clamp(
+        final frameSize = (constraints.maxWidth * 0.66).clamp(
           0.0,
-          constraints.maxHeight * 0.6,
+          constraints.maxHeight * 0.45,
         );
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: frameSize,
-              height: frameSize,
-              child: Stack(
-                children: [
-                  CustomPaint(
-                    size: Size(frameSize, frameSize),
-                    painter: _CornerPainter(),
-                  ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: _DistanceBadge(),
-                    ),
-                  ),
-                ],
-              ),
+            const _DistanceBadge(),
+            const SizedBox(height: 18),
+            CustomPaint(
+              size: Size.square(frameSize),
+              painter: _CornerPainter(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 16,
+                  vertical: 10,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.black54,
@@ -54,7 +41,7 @@ class GuideFrame extends StatelessWidget {
                 child: const Text(
                   instructionText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
             ),
@@ -66,20 +53,30 @@ class GuideFrame extends StatelessWidget {
 }
 
 class _DistanceBadge extends StatelessWidget {
+  const _DistanceBadge();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.guideGreen),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.straighten, size: 16, color: AppColors.lightGreen),
+          Icon(Icons.straighten, size: 14, color: AppColors.guideGreen),
           SizedBox(width: 4),
-          Text('30–60 cm', style: TextStyle(color: Colors.white, fontSize: 12)),
+          Text(
+            GuideFrame.distanceText,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -90,14 +87,14 @@ class _DistanceBadge extends StatelessWidget {
 class _CornerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    const cornerLength = 32.0;
+    const cornerLength = 24.0;
     final width = size.width;
     final height = size.height;
     final paint = Paint()
-      ..color = AppColors.lightGreen
+      ..color = AppColors.guideGreen
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.square;
 
     canvas.drawPath(
       Path()

@@ -9,10 +9,14 @@ class AppColors {
   static const Color lightGreen = Color(0xFF67C23A);
   static const Color darkGreen = Color(0xFF0B5D3B);
 
+  // Camera framing guide
+  static const Color guideGreen = Color(0xFF00E676);
+
   // Surfaces
   static const Color white = Color(0xFFFFFFFF);
   static const Color softGray = Color(0xFFE5E7EB);
   static const Color background = Color(0xFFF9FAFB);
+  static const Color neutralChip = Color(0xFFF3F4F6);
 
   // Text
   static const Color primaryText = Color(0xFF111827);
@@ -26,4 +30,5 @@ class AppColors {
   // Synchronization status
   static const Color synchronized = Color(0xFF15803D);
   static const Color pending = Color(0xFFF59E0B);
+  static const Color offline = Color(0xFF9CA3AF);
 }
