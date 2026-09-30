@@ -152,8 +152,8 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     if (!mounted) return;
     switch (decision) {
       case PreviewDecision.analyze:
-        // HU04-HU06 will run the detection pipeline from here.
-        _showMessage('El análisis estará disponible próximamente.');
+        // The photo passed HU04 and HU05; HU06 will show the result instead.
+        _showMessage('La foto está lista para el análisis.');
       case PreviewDecision.retake:
         if (image.origin == ImageOrigin.camera) {
           await _discard(image);

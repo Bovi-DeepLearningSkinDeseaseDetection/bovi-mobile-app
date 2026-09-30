@@ -1,4 +1,9 @@
+import 'dart:typed_data';
+
+import 'package:bov_mobile_app/clinical/application/internal/commandservices/detection_pipeline_service.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/captured_image.dart';
+import 'package:bov_mobile_app/clinical/domain/model/value_objects/image_quality.dart';
+import 'package:bov_mobile_app/clinical/domain/model/value_objects/model_input.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/image_preview_page.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/widgets/low_resolution_dialog.dart';
@@ -15,6 +20,30 @@ CapturedImage _image({
   origin: origin,
   width: width,
   height: height,
+);
+
+/// Pipeline that returns a fixed outcome without reading the image.
+class _FakePipeline extends DetectionPipelineService {
+  final DetectionOutcome outcome;
+
+  _FakePipeline(this.outcome);
+
+  @override
+  Future<DetectionOutcome> run(CapturedImage image) async => outcome;
+}
+
+ImageQualityReport _report(List<ImageQualityIssue> issues) =>
+    ImageQualityReport(
+      sharpness: 0,
+      meanBrightness: 0,
+      darkRatio: 0,
+      brightRatio: 0,
+      issues: issues,
+    );
+
+final _ready = ReadyForInference(
+  ModelInput(Float32List(224 * 224 * 3)),
+  _report([]),
 );
 
 /// Pushes [page] and returns a getter for the value it pops with.
@@ -79,16 +108,73 @@ void main() {
     testWidgets('a gallery image offers "Analizar" and "Elegir otra"', (
       tester,
     ) async {
-      final result = await _pushAndCapture<PreviewDecision>(
+      await _pushAndCapture<PreviewDecision>(
         tester,
         (_) => ImagePreviewPage(image: _image(origin: ImageOrigin.gallery)),
       );
 
+      expect(find.text('Analizar'), findsOneWidget);
       expect(find.text('Elegir otra'), findsOneWidget);
+    });
+
+    // HU04, scenario 1 and HU05, scenario 3: no extra action is requested.
+    testWidgets('a valid photo continues to the analysis', (tester) async {
+      final result = await _pushAndCapture<PreviewDecision>(
+        tester,
+        (_) =>
+            ImagePreviewPage(image: _image(), pipeline: _FakePipeline(_ready)),
+      );
 
       await tester.tap(find.text('Analizar'));
       await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
       expect(result(), PreviewDecision.analyze);
+    });
+
+    // HU04, scenario 2.
+    testWidgets('a blurry photo is not analyzed and can be retaken', (
+      tester,
+    ) async {
+      final result = await _pushAndCapture<PreviewDecision>(
+        tester,
+        (_) => ImagePreviewPage(
+          image: _image(),
+          pipeline: _FakePipeline(
+            RejectedByQuality(_report([ImageQualityIssue.blurry])),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Analizar'));
+      await tester.pumpAndSettle();
+      expect(find.text(ImageQualityIssue.blurry.message), findsOneWidget);
+
+      await tester.tap(find.text('Tomar otra foto'));
+      await tester.pumpAndSettle();
+      expect(result(), PreviewDecision.retake);
+    });
+
+    // HU04, scenario 3: the exposure message comes before the blur one.
+    testWidgets('a dark photo shows the natural light advice', (tester) async {
+      await _pushAndCapture<PreviewDecision>(
+        tester,
+        (_) => ImagePreviewPage(
+          image: _image(),
+          pipeline: _FakePipeline(
+            RejectedByQuality(
+              _report([ImageQualityIssue.dark, ImageQualityIssue.blurry]),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Analizar'));
+      await tester.pumpAndSettle();
+      expect(find.text(ImageQualityIssue.dark.message), findsOneWidget);
+
+      await tester.tap(find.text('Cerrar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Analizar'), findsOneWidget);
     });
   });
 
