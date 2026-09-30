@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+
+import '../theme/app_colors.dart';
+
+/// Header chip that shows whether the device is online.
+class ConnectionStatusChip extends StatelessWidget {
+  final bool isOnline;
+
+  const ConnectionStatusChip({super.key, required this.isOnline});
+
+  static const onlineText = 'En línea';
+  static const offlineText = 'Sin conexión';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.neutralChip,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isOnline ? AppColors.synchronized : AppColors.offline,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            isOnline ? onlineText : offlineText,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primaryText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
