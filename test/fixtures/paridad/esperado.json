@@ -1,0 +1,101 @@
+{
+  "modelo": "bovi_modelo_fp16.tflite",
+  "preprocesamiento": "recorte cuadrado central + resize bilineal 224, RGB 0-255 float32",
+  "clases": [
+    "dermatofitosis",
+    "piel_sana"
+  ],
+  "tolerancia": 0.02,
+  "casos": [
+    {
+      "archivo": "ds1_dermatofitosis_00002.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.999927,
+        7.3e-05
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_dermatofitosis_00314.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.635792,
+        0.364208
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_dermatofitosis_00630.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.99747,
+        0.00253
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_dermatofitosis_01035.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.999295,
+        0.000705
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_dermatofitosis_01331.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.888826,
+        0.111174
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds4_dermatofitosis_00062.jpg",
+      "clase_real": "dermatofitosis",
+      "probabilidades": [
+        0.627944,
+        0.372056
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_piel_sana_00310.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.002724,
+        0.997276
+      ],
+      "prediccion": "piel_sana"
+    },
+    {
+      "archivo": "ds1_piel_sana_00666.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.001383,
+        0.998617
+      ],
+      "prediccion": "piel_sana"
+    },
+    {
+      "archivo": "ds1_piel_sana_00943.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.009533,
+        0.990467
+      ],
+      "prediccion": "piel_sana"
+    },
+    {
+      "archivo": "ds1_piel_sana_01280.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.071961,
+        0.928039
+      ],
+      "prediccion": "piel_sana"
+    }
+  ]
+}
