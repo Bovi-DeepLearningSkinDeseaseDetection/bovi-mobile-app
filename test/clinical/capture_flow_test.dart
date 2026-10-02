@@ -154,6 +154,43 @@ void main() {
       expect(result(), PreviewDecision.retake);
     });
 
+    // Doubtful photo: the user is guided but can still analyze it.
+    testWidgets('a slightly blurry photo can be analyzed anyway', (
+      tester,
+    ) async {
+      final result = await _pushAndCapture<PreviewDecision>(
+        tester,
+        (_) => ImagePreviewPage(
+          image: _image(),
+          pipeline: _FakePipeline(
+            QualityWarning(
+              ModelInput(Float32List(224 * 224 * 3)),
+              ImageQualityReport(
+                sharpness: 0,
+                meanBrightness: 0,
+                darkRatio: 0,
+                brightRatio: 0,
+                issues: const [],
+                warnings: const [ImageQualityIssue.blurry],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Analizar'));
+      await tester.pumpAndSettle();
+      expect(find.text('La foto podría mejorar'), findsOneWidget);
+      expect(
+        find.text(ImageQualityIssue.blurry.warningMessage),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Analizar de todos modos'));
+      await tester.pumpAndSettle();
+      expect(result(), PreviewDecision.analyze);
+    });
+
     // HU04, scenario 3: the exposure message comes before the blur one.
     testWidgets('a dark photo shows the natural light advice', (tester) async {
       await _pushAndCapture<PreviewDecision>(

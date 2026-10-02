@@ -37,15 +37,22 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
       final outcome = await _pipeline.run(widget.image);
       if (!mounted) return;
       switch (outcome) {
-        case RejectedByQuality(:final report):
+        case RejectedByQuality(:final report) || QualityWarning(:final report):
           setState(() => _isAnalyzing = false);
-          final retake = await showQualityIssueDialog(
+          final choice = await showQualityDialog(
             context,
             report: report,
             retakeLabel: _fromCamera ? 'Tomar otra foto' : 'Elegir otra',
           );
-          if (retake && mounted) {
-            Navigator.of(context).pop(PreviewDecision.retake);
+          if (!mounted) return;
+          switch (choice) {
+            case QualityDialogChoice.retake:
+              Navigator.of(context).pop(PreviewDecision.retake);
+            case QualityDialogChoice.analyzeAnyway:
+              // HU06 will run the model here and open the result screen.
+              Navigator.of(context).pop(PreviewDecision.analyze);
+            case QualityDialogChoice.close:
+              break;
           }
         case ReadyForInference():
           // HU06 will run the model here and open the result screen.

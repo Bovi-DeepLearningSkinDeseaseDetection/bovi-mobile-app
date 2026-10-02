@@ -35,6 +35,19 @@ class NativeCameraManager {
     return _controller!.takePicture();
   }
 
+  /// Focuses and meters exposure on a normalized point of the preview,
+  /// when the camera supports it.
+  Future<void> focusAt(ui.Offset point) async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (controller.value.focusPointSupported) {
+      await controller.setFocusPoint(point);
+    }
+    if (controller.value.exposurePointSupported) {
+      await controller.setExposurePoint(point);
+    }
+  }
+
   // Clear the reference first so the preview stops using a disposed controller.
   Future<void> dispose() async {
     final controller = _controller;

@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "pe.upc.bovi.bovi_mobile"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android compiles against SDK 37 (backward compatible).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

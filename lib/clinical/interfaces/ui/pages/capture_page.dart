@@ -1,16 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../shared/infrastructure/camera/native_camera_manager.dart';
 import '../../../../shared/infrastructure/network/connectivity_monitor.dart';
 import '../../../../shared/infrastructure/persistence/preferences/preferences_app.dart';
+import '../../../../shared/infrastructure/sensors/device_motion_monitor.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../shared/interfaces/ui/widgets/connection_status_chip.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
+import '../widgets/focus_ring.dart';
 import '../widgets/guide_frame.dart';
 import '../widgets/help_frame.dart';
 import '../widgets/low_resolution_dialog.dart';
@@ -33,6 +37,12 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
   final _camera = NativeCameraManager();
   final _preferences = ApplicationPreferences();
   late final Stream<bool> _connection = ConnectivityMonitor().watch();
+  final _motion = DeviceMotionMonitor();
+  StreamSubscription<bool>? _motionSubscription;
+  bool _isSteady = false;
+  Offset? _focusPosition;
+  int _focusTaps = 0;
+  bool _showFlash = false;
   bool _isLoading = true;
   bool _isInitializing = false;
   bool _isBusy = false;
@@ -44,6 +54,7 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
+    _watchMotion();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _showHelpOnFirstLaunch(),
     );
@@ -74,6 +85,19 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  // The guide turns green when the phone is steady, with a light tick.
+  void _watchMotion() {
+    _motionSubscription ??= _motion.watch().listen((steady) {
+      if (steady && !_isSteady) HapticFeedback.selectionClick();
+      if (mounted) setState(() => _isSteady = steady);
+    });
+  }
+
+  void _stopWatchingMotion() {
+    _motionSubscription?.cancel();
+    _motionSubscription = null;
+  }
+
   Future<void> _showHelpOnFirstLaunch() async {
     if (await _preferences.hasSeenHelpFrame()) return;
     if (!mounted) return;
@@ -86,10 +110,12 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
+      _stopWatchingMotion();
       if (!_camera.isInitialized) return;
       _camera.dispose();
       if (mounted) setState(() => _isLoading = true);
     } else if (state == AppLifecycleState.resumed) {
+      _watchMotion();
       if (!_camera.isInitialized) _initializeCamera();
     }
   }
@@ -98,6 +124,7 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
   Future<void> _captureImage() async {
     if (_isBusy || !_camera.isInitialized) return;
     setState(() => _isBusy = true);
+    _flashShutter();
     try {
       final photo = await _camera.capture();
       final image = await _toCapturedImage(photo, ImageOrigin.camera);
@@ -107,6 +134,38 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
       _showMessage('No se pudo tomar la foto. Inténtelo de nuevo.');
     } finally {
       if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  // Brief white flash and a tap, as camera apps do when taking a photo.
+  void _flashShutter() {
+    HapticFeedback.lightImpact();
+    setState(() => _showFlash = true);
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) setState(() => _showFlash = false);
+    });
+  }
+
+  // Tap to focus and meter exposure on that point of the preview.
+  Future<void> _focusAt(Offset tap, Size viewfinder) async {
+    final previewSize = _camera.controller?.value.previewSize;
+    // The preview size is reported in landscape; swap it for portrait.
+    final point = previewSize == null
+        ? Offset(tap.dx / viewfinder.width, tap.dy / viewfinder.height)
+        : tapToPreviewPoint(
+            tap,
+            viewfinder,
+            Size(previewSize.height, previewSize.width),
+          );
+    HapticFeedback.selectionClick();
+    setState(() {
+      _focusPosition = tap;
+      _focusTaps++;
+    });
+    try {
+      await _camera.focusAt(point);
+    } on CameraException {
+      // Some cameras reject focus points; the autofocus keeps working.
     }
   }
 
@@ -185,6 +244,7 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _stopWatchingMotion();
     _camera.dispose();
     super.dispose();
   }
@@ -237,13 +297,29 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     if (_isLoading || controller == null || !_camera.isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        _CoverCameraPreview(controller: controller),
-        ColoredBox(color: Colors.black.withValues(alpha: 0.15)),
-        const IgnorePointer(child: GuideFrame()),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapUp: (details) =>
+            _focusAt(details.localPosition, constraints.biggest),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _CoverCameraPreview(controller: controller),
+            ColoredBox(color: Colors.black.withValues(alpha: 0.15)),
+            IgnorePointer(child: GuideFrame(isSteady: _isSteady)),
+            if (_focusPosition != null)
+              FocusRing(key: ValueKey(_focusTaps), position: _focusPosition!),
+            IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _showFlash ? 0.6 : 0,
+                duration: const Duration(milliseconds: 120),
+                child: const ColoredBox(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

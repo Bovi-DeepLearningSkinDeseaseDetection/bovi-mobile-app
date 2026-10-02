@@ -3,35 +3,47 @@ import 'package:flutter/material.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../domain/model/value_objects/image_quality.dart';
 
-/// Explains why the photo was not analyzed (HU04).
+/// What the user chose in the quality dialog.
+enum QualityDialogChoice { retake, analyzeAnyway, close }
+
+/// Explains a quality problem found in the photo (HU04).
 ///
-/// Returns true when the user wants to take or choose another photo.
-Future<bool> showQualityIssueDialog(
+/// A rejected photo can only be retaken. A doubtful photo can also be
+/// analyzed anyway, so users with weaker cameras are not blocked.
+Future<QualityDialogChoice> showQualityDialog(
   BuildContext context, {
   required ImageQualityReport report,
   required String retakeLabel,
 }) async {
-  final retake = await showDialog<bool>(
+  final rejected = !report.isValid;
+  final choice = await showDialog<QualityDialogChoice>(
     context: context,
     builder: (context) => AlertDialog(
-      icon: const Icon(
-        Icons.warning_amber_rounded,
+      icon: Icon(
+        rejected ? Icons.warning_amber_rounded : Icons.info_outline,
         color: AppColors.reviewStatus,
         size: 32,
       ),
-      title: const Text('No se puede analizar la foto'),
+      title: Text(
+        rejected ? 'No se puede analizar la foto' : 'La foto podría mejorar',
+      ),
       content: Text(report.message ?? ''),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cerrar'),
+          onPressed: () => Navigator.of(context).pop(
+            rejected
+                ? QualityDialogChoice.close
+                : QualityDialogChoice.analyzeAnyway,
+          ),
+          child: Text(rejected ? 'Cerrar' : 'Analizar de todos modos'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () =>
+              Navigator.of(context).pop(QualityDialogChoice.retake),
           child: Text(retakeLabel),
         ),
       ],
     ),
   );
-  return retake ?? false;
+  return choice ?? QualityDialogChoice.close;
 }
