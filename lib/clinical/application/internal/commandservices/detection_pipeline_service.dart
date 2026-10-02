@@ -17,6 +17,14 @@ class RejectedByQuality extends DetectionOutcome {
   const RejectedByQuality(this.report);
 }
 
+/// The photo is doubtful but can be analyzed if the user confirms (HU04).
+class QualityWarning extends DetectionOutcome {
+  final ModelInput input;
+  final ImageQualityReport report;
+
+  const QualityWarning(this.input, this.report);
+}
+
 /// The photo passed the quality check and is ready for the model (HU05).
 class ReadyForInference extends DetectionOutcome {
   final ModelInput input;
@@ -40,6 +48,9 @@ class DetectionPipelineService {
       '(${image.width}x${image.height}): ${result.quality}',
     );
     if (!result.quality.isValid) return RejectedByQuality(result.quality);
+    if (result.quality.hasWarnings) {
+      return QualityWarning(result.input, result.quality);
+    }
     return ReadyForInference(result.input, result.quality);
   }
 }

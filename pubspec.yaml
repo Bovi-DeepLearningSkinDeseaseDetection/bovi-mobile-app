@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  camera: ^0.11.0              # Feature 01
+  camera: ^0.12.1              # Feature 01
   image_picker: ^1.1.2         # Feature 02
   image: ^4.2.0                # Features 04 and 05: image preprocessing
   path_provider: ^2.1.4
@@ -48,6 +48,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.5
   permission_handler: ^13.0.2
+  sensors_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:
