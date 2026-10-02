@@ -211,8 +211,9 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     if (!mounted) return;
     switch (decision) {
       case PreviewDecision.analyze:
-        // The photo passed HU04 and HU05; HU06 will show the result instead.
-        _showMessage('La foto está lista para el análisis.');
+        // The result was already shown (HU06). The temporary photo is not
+        // needed until evaluations are saved (HU10).
+        if (image.origin == ImageOrigin.camera) await _discard(image);
       case PreviewDecision.retake:
         if (image.origin == ImageOrigin.camera) {
           await _discard(image);

@@ -2,7 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/image_quality.dart';
+import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/model/value_objects/model_input.dart';
+import '../../../domain/services/skin_lesion_classifier.dart';
+import '../../../infrastructure/ml/tflite/deep_learning_inference_engine.dart';
 import '../../../infrastructure/vision/computer_vision_preprocessor.dart';
 
 /// Result of running the detection pipeline on a photo.
@@ -34,12 +37,16 @@ class ReadyForInference extends DetectionOutcome {
 }
 
 /// Runs the detection flow triggered by "Analizar": quality check and
-/// preprocessing. HU06 adds the inference step after preprocessing.
+/// preprocessing with [run], then the model with [analyze] (HU06).
 class DetectionPipelineService {
   final ComputerVisionPreprocessor _preprocessor;
+  final SkinLesionClassifier _classifier;
 
-  DetectionPipelineService({ComputerVisionPreprocessor? preprocessor})
-    : _preprocessor = preprocessor ?? const ComputerVisionPreprocessor();
+  DetectionPipelineService({
+    ComputerVisionPreprocessor? preprocessor,
+    SkinLesionClassifier? classifier,
+  }) : _preprocessor = preprocessor ?? const ComputerVisionPreprocessor(),
+       _classifier = classifier ?? DeepLearningInferenceEngine.shared;
 
   Future<DetectionOutcome> run(CapturedImage image) async {
     final result = await _preprocessor.process(image.path);
@@ -52,5 +59,19 @@ class DetectionPipelineService {
       return QualityWarning(result.input, result.quality);
     }
     return ReadyForInference(result.input, result.quality);
+  }
+
+  /// Classifies a photo that already passed [run]. A rejected photo never
+  /// reaches this point, because it has no [ModelInput] to pass.
+  Future<InferenceResult> analyze(ModelInput input) async {
+    final result = await _classifier.classify(input);
+    final scores = result.probabilities
+        .map((p) => '${p.label}=${p.probability.toStringAsFixed(4)}')
+        .join(', ');
+    debugPrint(
+      'Inference took ${result.elapsed.inMilliseconds} ms '
+      '(model ${result.modelVersion}): $scores',
+    );
+    return result;
   }
 }
