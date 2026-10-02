@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'package:bov_mobile_app/clinical/application/internal/commandservices/detection_pipeline_service.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/captured_image.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/image_quality.dart';
+import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_result.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/model_input.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/image_preview_page.dart';
+import 'package:bov_mobile_app/clinical/interfaces/ui/pages/result_page.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/widgets/low_resolution_dialog.dart';
 import 'package:bov_mobile_app/shared/interfaces/ui/widgets/connection_status_chip.dart';
 import 'package:flutter/material.dart';
@@ -22,14 +24,27 @@ CapturedImage _image({
   height: height,
 );
 
-/// Pipeline that returns a fixed outcome without reading the image.
+/// Pipeline that returns a fixed outcome without reading the image, and a
+/// fixed model result without loading the model.
 class _FakePipeline extends DetectionPipelineService {
   final DetectionOutcome outcome;
+  int analyzeCalls = 0;
 
   _FakePipeline(this.outcome);
 
   @override
   Future<DetectionOutcome> run(CapturedImage image) async => outcome;
+
+  @override
+  Future<InferenceResult> analyze(ModelInput input) async {
+    analyzeCalls++;
+    return InferenceResult.fromScores(
+      labels: const ['dermatofitosis', 'piel_sana'],
+      scores: const [0.1, 0.9],
+      modelVersion: 'test',
+      elapsed: Duration.zero,
+    );
+  }
 }
 
 ImageQualityReport _report(List<ImageQualityIssue> issues) =>
@@ -117,17 +132,25 @@ void main() {
       expect(find.text('Elegir otra'), findsOneWidget);
     });
 
-    // HU04, scenario 1 and HU05, scenario 3: no extra action is requested.
-    testWidgets('a valid photo continues to the analysis', (tester) async {
+    // HU04, scenario 1, HU05, scenario 3 and HU06: no extra action is
+    // requested and the result is shown.
+    testWidgets('a valid photo is analyzed and shows the result', (
+      tester,
+    ) async {
+      final pipeline = _FakePipeline(_ready);
       final result = await _pushAndCapture<PreviewDecision>(
         tester,
-        (_) =>
-            ImagePreviewPage(image: _image(), pipeline: _FakePipeline(_ready)),
+        (_) => ImagePreviewPage(image: _image(), pipeline: pipeline),
       );
 
       await tester.tap(find.text('Analizar'));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
+      expect(pipeline.analyzeCalls, 1);
+      expect(find.byType(ResultPage), findsOneWidget);
+
+      await tester.tap(find.text(ResultPage.retakeLabel));
+      await tester.pumpAndSettle();
       expect(result(), PreviewDecision.analyze);
     });
 
@@ -135,19 +158,19 @@ void main() {
     testWidgets('a blurry photo is not analyzed and can be retaken', (
       tester,
     ) async {
+      final pipeline = _FakePipeline(
+        RejectedByQuality(_report([ImageQualityIssue.blurry])),
+      );
       final result = await _pushAndCapture<PreviewDecision>(
         tester,
-        (_) => ImagePreviewPage(
-          image: _image(),
-          pipeline: _FakePipeline(
-            RejectedByQuality(_report([ImageQualityIssue.blurry])),
-          ),
-        ),
+        (_) => ImagePreviewPage(image: _image(), pipeline: pipeline),
       );
 
       await tester.tap(find.text('Analizar'));
       await tester.pumpAndSettle();
       expect(find.text(ImageQualityIssue.blurry.message), findsOneWidget);
+      // The model never runs on a rejected photo.
+      expect(pipeline.analyzeCalls, 0);
 
       await tester.tap(find.text('Tomar otra foto'));
       await tester.pumpAndSettle();
@@ -187,6 +210,10 @@ void main() {
       );
 
       await tester.tap(find.text('Analizar de todos modos'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ResultPage), findsOneWidget);
+
+      await tester.tap(find.text(ResultPage.retakeLabel));
       await tester.pumpAndSettle();
       expect(result(), PreviewDecision.analyze);
     });

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../application/internal/commandservices/detection_pipeline_service.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
+import '../../../domain/model/value_objects/model_input.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
 import '../widgets/quality_issue_dialog.dart';
+import 'result_page.dart';
 
 /// What the user decided on the preview screen.
 enum PreviewDecision { analyze, retake }
@@ -28,6 +30,7 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
   bool _isAnalyzing = false;
 
   bool get _fromCamera => widget.image.origin == ImageOrigin.camera;
+
   String get _retakeLabel => _fromCamera ? 'Repetir' : 'Elegir otra';
 
   // HU04 and HU05: validate the quality and prepare the image for the model.
@@ -37,34 +40,71 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
       final outcome = await _pipeline.run(widget.image);
       if (!mounted) return;
       switch (outcome) {
-        case RejectedByQuality(:final report) || QualityWarning(:final report):
+        case RejectedByQuality(:final report):
           setState(() => _isAnalyzing = false);
           final choice = await showQualityDialog(
             context,
             report: report,
-            retakeLabel: _fromCamera ? 'Tomar otra foto' : 'Elegir otra',
+            retakeLabel: _qualityRetakeLabel,
+          );
+          if (!mounted) return;
+          if (choice == QualityDialogChoice.retake) {
+            Navigator.of(context).pop(PreviewDecision.retake);
+          }
+        case QualityWarning(:final input, :final report):
+          setState(() => _isAnalyzing = false);
+          final choice = await showQualityDialog(
+            context,
+            report: report,
+            retakeLabel: _qualityRetakeLabel,
           );
           if (!mounted) return;
           switch (choice) {
             case QualityDialogChoice.retake:
               Navigator.of(context).pop(PreviewDecision.retake);
             case QualityDialogChoice.analyzeAnyway:
-              // HU06 will run the model here and open the result screen.
-              Navigator.of(context).pop(PreviewDecision.analyze);
+              await _classify(input);
             case QualityDialogChoice.close:
               break;
           }
-        case ReadyForInference():
-          // HU06 will run the model here and open the result screen.
-          Navigator.of(context).pop(PreviewDecision.analyze);
+        case ReadyForInference(:final input):
+          await _classify(input);
       }
     } catch (_) {
+      _showError('No se pudo procesar la imagen.');
+    }
+  }
+
+  String get _qualityRetakeLabel =>
+      _fromCamera ? 'Tomar otra foto' : 'Elegir otra';
+
+  // HU06: run the model on the device and show the preliminary result.
+  Future<void> _classify(ModelInput input) async {
+    setState(() => _isAnalyzing = true);
+    try {
+      final result = await _pipeline.analyze(input);
       if (!mounted) return;
       setState(() => _isAnalyzing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo procesar la imagen.')),
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => ResultPage(image: widget.image, result: result),
+        ),
       );
+      if (!mounted) return;
+      // Leaving the result goes back to the camera for the next photo.
+      Navigator.of(context).pop(PreviewDecision.analyze);
+    } catch (error) {
+      debugPrint('Inference failed: $error');
+      _showError('No se pudo analizar la imagen.');
     }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    setState(() => _isAnalyzing = false);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
