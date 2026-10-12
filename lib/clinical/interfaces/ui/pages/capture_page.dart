@@ -12,6 +12,7 @@ import '../../../../shared/infrastructure/persistence/preferences/preferences_ap
 import '../../../../shared/infrastructure/sensors/device_motion_monitor.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../shared/interfaces/ui/widgets/connection_status_chip.dart';
+import '../../../../shared/interfaces/ui/widgets/icon_bubble.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
 import '../widgets/focus_ring.dart';
@@ -21,7 +22,10 @@ import '../widgets/low_resolution_dialog.dart';
 import 'image_preview_page.dart';
 
 class CapturePage extends StatefulWidget {
-  const CapturePage({super.key});
+  /// Opens the history. Without it, the history action shows a notice.
+  final VoidCallback? onHistory;
+
+  const CapturePage({super.key, this.onHistory});
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -253,12 +257,12 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: const Text('Bovi'),
+        title: const Text('Escanear'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline_rounded),
             tooltip: 'Cómo tomar la foto',
             onPressed: () => showFramingHelp(context),
           ),
@@ -268,18 +272,30 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
             builder: (context, snapshot) =>
                 ConnectionStatusChip(isOnline: snapshot.data ?? false),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
         ],
       ),
       body: Column(
         children: [
-          Expanded(child: _viewfinder()),
+          // The viewfinder is a dark card with rounded bottom corners that
+          // rests on the white panel of the controls.
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(28),
+              ),
+              child: ColoredBox(color: Colors.black, child: _viewfinder()),
+            ),
+          ),
           _CaptureControls(
             isBusy: _isBusy,
             onGallery: _selectFromGallery,
             onCapture: _captureImage,
-            onHistory: () =>
-                _showMessage('El historial estará disponible próximamente.'),
+            onHistory:
+                widget.onHistory ??
+                () => _showMessage(
+                  'El historial estará disponible próximamente.',
+                ),
           ),
         ],
       ),
@@ -296,7 +312,9 @@ class _CapturePageState extends State<CapturePage> with WidgetsBindingObserver {
     }
     final controller = _camera.controller;
     if (_isLoading || controller == null || !_camera.isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.lightGreen),
+      );
     }
     return LayoutBuilder(
       builder: (context, constraints) => GestureDetector(
@@ -363,40 +381,49 @@ class _CameraErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              showSettings
-                  ? Icons.no_photography_outlined
-                  : Icons.error_outline,
-              color: Colors.white,
-              size: 48,
+            IconBubble(
+              icon: Icon(
+                showSettings
+                    ? Icons.no_photography_outlined
+                    : Icons.error_outline_rounded,
+              ),
+              size: 72,
+              background: AppColors.white.withValues(alpha: 0.12),
+              color: AppColors.white,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 16,
+                height: 1.5,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             if (showSettings) ...[
-              ElevatedButton.icon(
+              FilledButton.icon(
                 onPressed: openAppSettings,
                 icon: const Icon(Icons.settings_outlined),
                 label: const Text('Abrir ajustes'),
               ),
               const SizedBox(height: 12),
             ],
-            OutlinedButton(
+            OutlinedButton.icon(
               onPressed: onRetry,
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white),
+                foregroundColor: AppColors.white,
+                backgroundColor: Colors.transparent,
+                side: const BorderSide(color: AppColors.white, width: 1.5),
               ),
-              child: const Text('Reintentar'),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Reintentar'),
             ),
           ],
         ),
@@ -420,23 +447,23 @@ class _CaptureControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: AppColors.white,
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 120,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _SecondaryAction(
-                icon: Icons.image_outlined,
+                icon: Icons.photo_library_outlined,
                 label: 'Galería',
                 onTap: onGallery,
               ),
               _CaptureButton(isBusy: isBusy, onTap: onCapture),
               _SecondaryAction(
-                icon: Icons.schedule,
+                icon: Icons.article_outlined,
                 label: 'Historial',
                 onTap: onHistory,
               ),
@@ -448,6 +475,7 @@ class _CaptureControls extends StatelessWidget {
   }
 }
 
+/// Shutter: a green ring around a solid green button with a camera.
 class _CaptureButton extends StatelessWidget {
   final bool isBusy;
   final VoidCallback onTap;
@@ -459,35 +487,37 @@ class _CaptureButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Capturar',
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 72,
-          height: 72,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.darkGreen,
-            border: Border.all(color: AppColors.softGray, width: 4),
+      child: Container(
+        width: 80,
+        height: 80,
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.lightGreen, width: 3),
+        ),
+        child: Material(
+          color: AppColors.primaryGreen,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Center(
+              child: isBusy
+                  ? const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        color: AppColors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.photo_camera_rounded,
+                      color: AppColors.white,
+                      size: 30,
+                    ),
+            ),
           ),
-          child: isBusy
-              ? const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                    color: AppColors.white,
-                    strokeWidth: 3,
-                  ),
-                )
-              : Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.white.withValues(alpha: 0.4),
-                    border: Border.all(color: AppColors.white, width: 2),
-                  ),
-                ),
         ),
       ),
     );
@@ -509,20 +539,20 @@ class _SecondaryAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppColors.primaryText),
-            const SizedBox(height: 4),
+            IconBubble(icon: Icon(icon), size: 48),
+            const SizedBox(height: 6),
             Text(
               label,
               style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primaryText,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGreen,
               ),
             ),
           ],

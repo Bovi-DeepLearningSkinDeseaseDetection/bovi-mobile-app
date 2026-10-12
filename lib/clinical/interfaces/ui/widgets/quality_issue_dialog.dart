@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
+import '../../../../shared/interfaces/ui/widgets/icon_bubble.dart';
 import '../../../domain/model/value_objects/image_quality.dart';
 
 /// What the user chose in the quality dialog.
@@ -19,15 +20,18 @@ Future<QualityDialogChoice> showQualityDialog(
   final choice = await showDialog<QualityDialogChoice>(
     context: context,
     builder: (context) => AlertDialog(
-      icon: Icon(
-        rejected ? Icons.warning_amber_rounded : Icons.info_outline,
+      icon: IconBubble(
+        icon: Icon(
+          rejected ? Icons.warning_amber_rounded : Icons.info_outline_rounded,
+        ),
+        background: AppColors.reviewSurface,
         color: AppColors.reviewStatus,
-        size: 32,
       ),
       title: Text(
         rejected ? 'No se puede analizar la foto' : 'La foto podría mejorar',
       ),
-      content: Text(report.message ?? ''),
+      content: Text(report.message ?? '', textAlign: TextAlign.center),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(
@@ -37,9 +41,10 @@ Future<QualityDialogChoice> showQualityDialog(
           ),
           child: Text(rejected ? 'Cerrar' : 'Analizar de todos modos'),
         ),
-        TextButton(
+        FilledButton(
           onPressed: () =>
               Navigator.of(context).pop(QualityDialogChoice.retake),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
           child: Text(retakeLabel),
         ),
       ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'shared/interfaces/ui/theme/app_theme.dart';
-import 'clinical/interfaces/ui/pages/capture_page.dart';
+import 'shared/interfaces/ui/pages/home_shell.dart';
 
 void main() {
   runApp(const BoviApp());
@@ -15,7 +15,8 @@ class BoviApp extends StatelessWidget {
       title: 'Bovi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const CapturePage(),
+      themeMode: ThemeMode.light,
+      home: const HomeShell(),
     );
   }
 }

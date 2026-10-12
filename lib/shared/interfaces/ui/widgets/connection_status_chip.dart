@@ -13,11 +13,12 @@ class ConnectionStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.neutralChip,
-        borderRadius: BorderRadius.circular(20),
+      decoration: ShapeDecoration(
+        color: isOnline ? AppColors.healthySurface : AppColors.neutralChip,
+        shape: const StadiumBorder(),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -33,10 +34,10 @@ class ConnectionStatusChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             isOnline ? onlineText : offlineText,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primaryText,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isOnline ? AppColors.healthyText : AppColors.bodyText,
             ),
           ),
         ],

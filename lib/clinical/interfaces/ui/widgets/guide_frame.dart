@@ -125,8 +125,8 @@ class _GuideFrameState extends State<GuideFrame> with TickerProviderStateMixin {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
@@ -136,7 +136,11 @@ class _GuideFrameState extends State<GuideFrame> with TickerProviderStateMixin {
                         : GuideFrame.holdStillText,
                     key: ValueKey(steady),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
+import '../../../../shared/interfaces/ui/widgets/stethoscope_icon.dart';
 import '../../../application/internal/commandservices/detection_pipeline_service.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/model_input.dart';
@@ -112,18 +113,25 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Vista previa')),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: ColoredBox(
-              color: Colors.black,
-              child: Center(
-                child: Image.file(
-                  File(widget.image.path),
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.broken_image_outlined,
-                    color: AppColors.softGray,
-                    size: 48,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: ColoredBox(
+                  color: Colors.black,
+                  child: Center(
+                    child: Image.file(
+                      File(widget.image.path),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.broken_image_outlined,
+                        color: AppColors.softGray,
+                        size: 48,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -132,10 +140,31 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ElevatedButton.icon(
+                  const Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 18,
+                        color: AppColors.secondaryText,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Revise que la lesión se vea nítida y bien iluminada.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.secondaryText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
                     onPressed: _isAnalyzing ? null : _analyze,
                     icon: _isAnalyzing
                         ? const SizedBox(
@@ -146,7 +175,7 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                               strokeWidth: 2.5,
                             ),
                           )
-                        : const Icon(Icons.search),
+                        : const StethoscopeIcon(),
                     label: Text(_isAnalyzing ? 'Analizando…' : 'Analizar'),
                   ),
                   const SizedBox(height: 12),
@@ -157,7 +186,7 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                               Navigator.of(context).pop(PreviewDecision.retake),
                     icon: Icon(
                       _fromCamera
-                          ? Icons.refresh
+                          ? Icons.refresh_rounded
                           : Icons.photo_library_outlined,
                     ),
                     label: Text(_retakeLabel),

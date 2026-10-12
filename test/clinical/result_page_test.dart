@@ -2,6 +2,7 @@ import 'package:bov_mobile_app/clinical/domain/model/value_objects/captured_imag
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_result.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/result_page.dart';
+import 'package:bov_mobile_app/shared/interfaces/ui/widgets/status_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -35,6 +36,7 @@ void main() {
 
     expect(find.text('Indicios de dermatofitosis'), findsOneWidget);
     expect(find.text('Confianza: 91 %'), findsOneWidget);
+    expect(find.text(HealthStatus.lesion.label), findsOneWidget);
     expect(find.text(ResultPage.disclaimerText), findsOneWidget);
   });
 
@@ -44,6 +46,7 @@ void main() {
 
     expect(find.text('Piel sana'), findsWidgets);
     expect(find.text('Confianza: 90 %'), findsOneWidget);
+    expect(find.text(HealthStatus.healthy.label), findsOneWidget);
   });
 
   // HU08: no single class is presented below 60 % confidence.
@@ -52,6 +55,7 @@ void main() {
 
     expect(find.text(ResultPage.inconclusiveTitle), findsOneWidget);
     expect(find.text(ResultPage.inconclusiveAdvice), findsOneWidget);
+    expect(find.text(HealthStatus.review.label), findsOneWidget);
     expect(find.text('Indicios de dermatofitosis'), findsNothing);
     expect(find.text('55 %'), findsOneWidget);
     expect(find.text('45 %'), findsOneWidget);
