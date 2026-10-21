@@ -8,8 +8,6 @@ import '../widgets/farm_landscape.dart';
 /// Start screen: welcome, illustration and the two main actions.
 class HomePage extends StatelessWidget {
   static const welcomeText = 'Bienvenido\na Bovi';
-  static const subtitleText =
-      'Cuida la salud de la piel bovina con el poder de la tecnología.';
   static const scanLabel = 'Escanear ahora';
   static const historyLabel = 'Ver historial';
 
@@ -63,19 +61,7 @@ class HomePage extends StatelessWidget {
                         style: textTheme.headlineLarge,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
-                      child: Text(
-                        subtitleText,
-                        textAlign: TextAlign.center,
-                        // Base text two points above the theme's 14.
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: AppColors.bodyText,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     Expanded(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 190),
@@ -130,16 +116,10 @@ class _ActionsPanel extends StatelessWidget {
               label: const Text(HomePage.scanLabel),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
+            OutlinedButton.icon(
               onPressed: onHistory,
-              child: const Row(
-                children: [
-                  Icon(Icons.history_rounded),
-                  SizedBox(width: 12),
-                  Expanded(child: Text(HomePage.historyLabel)),
-                  Icon(Icons.chevron_right_rounded),
-                ],
-              ),
+              icon: const Icon(Icons.history_rounded),
+              label: const Text(HomePage.historyLabel),
             ),
           ],
         ),

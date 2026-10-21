@@ -17,7 +17,6 @@ void main() {
     );
 
     expect(find.text(HomePage.welcomeText), findsOneWidget);
-    expect(find.text(HomePage.subtitleText), findsOneWidget);
 
     await tester.tap(find.text(HomePage.scanLabel));
     await tester.tap(find.text(HomePage.historyLabel));
