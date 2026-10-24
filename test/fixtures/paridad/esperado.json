@@ -1,8 +1,8 @@
 {
-  "modelo": "bovi_modelo_fp16.tflite",
-  "preprocesamiento": "recorte cuadrado central + resize bilineal 224, RGB 0-255 float32",
+  "modelo": "bovi_modelo.tflite",
   "clases": [
     "dermatofitosis",
+    "papilomatosis",
     "piel_sana"
   ],
   "tolerancia": 0.02,
@@ -11,89 +11,99 @@
       "archivo": "ds1_dermatofitosis_00002.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.999927,
-        7.3e-05
+        0.999908,
+        8e-06,
+        8.4e-05
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds1_dermatofitosis_00314.jpg",
+      "archivo": "ds1_dermatofitosis_00324.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.635792,
-        0.364208
+        0.99989,
+        2e-06,
+        0.000108
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds1_dermatofitosis_00630.jpg",
+      "archivo": "ds1_dermatofitosis_00664.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.99747,
-        0.00253
+        0.999714,
+        0.0,
+        0.000286
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds1_dermatofitosis_01035.jpg",
+      "archivo": "ds1_dermatofitosis_01087.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.999295,
-        0.000705
+        0.994453,
+        0.00076,
+        0.004787
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds1_dermatofitosis_01331.jpg",
+      "archivo": "ds1_dermatofitosis_01397.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.888826,
-        0.111174
+        0.993145,
+        4e-06,
+        0.006851
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds4_dermatofitosis_00062.jpg",
-      "clase_real": "dermatofitosis",
+      "archivo": "est_papcara_001.jpg",
+      "clase_real": "papilomatosis",
       "probabilidades": [
-        0.627944,
-        0.372056
+        0.001273,
+        0.972407,
+        0.026321
       ],
-      "prediccion": "dermatofitosis"
+      "prediccion": "papilomatosis"
     },
     {
-      "archivo": "ds1_piel_sana_00310.jpg",
+      "archivo": "ds1_piel_sana_00290.jpg",
       "clase_real": "piel_sana",
       "probabilidades": [
-        0.002724,
-        0.997276
+        0.033353,
+        0.630789,
+        0.335858
+      ],
+      "prediccion": "papilomatosis"
+    },
+    {
+      "archivo": "ds1_piel_sana_00648.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.72123,
+        0.000274,
+        0.278496
+      ],
+      "prediccion": "dermatofitosis"
+    },
+    {
+      "archivo": "ds1_piel_sana_00926.jpg",
+      "clase_real": "piel_sana",
+      "probabilidades": [
+        0.018822,
+        1e-05,
+        0.981168
       ],
       "prediccion": "piel_sana"
     },
     {
-      "archivo": "ds1_piel_sana_00666.jpg",
+      "archivo": "ds1_piel_sana_01285.jpg",
       "clase_real": "piel_sana",
       "probabilidades": [
-        0.001383,
-        0.998617
-      ],
-      "prediccion": "piel_sana"
-    },
-    {
-      "archivo": "ds1_piel_sana_00943.jpg",
-      "clase_real": "piel_sana",
-      "probabilidades": [
-        0.009533,
-        0.990467
-      ],
-      "prediccion": "piel_sana"
-    },
-    {
-      "archivo": "ds1_piel_sana_01280.jpg",
-      "clase_real": "piel_sana",
-      "probabilidades": [
-        0.071961,
-        0.928039
+        0.001642,
+        0.002277,
+        0.996081
       ],
       "prediccion": "piel_sana"
     }
