@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
+import '../../../../shared/infrastructure/di/service_locator.dart';
 import '../../../../shared/interfaces/ui/widgets/stethoscope_icon.dart';
 import '../../../application/internal/commandservices/detection_pipeline_service.dart';
+import '../../../application/internal/commandservices/evaluation_command_service.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
+import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/model/value_objects/model_input.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
 import '../widgets/quality_issue_dialog.dart';
@@ -19,7 +22,16 @@ class ImagePreviewPage extends StatefulWidget {
   final CapturedImage image;
   final DetectionPipelineService? pipeline;
 
-  const ImagePreviewPage({super.key, required this.image, this.pipeline});
+  /// Saves each analysis (HU10). Without it, the registered service is used;
+  /// if there is none, as in widget tests, nothing is saved.
+  final EvaluationCommandService? evaluations;
+
+  const ImagePreviewPage({
+    super.key,
+    required this.image,
+    this.pipeline,
+    this.evaluations,
+  });
 
   @override
   State<ImagePreviewPage> createState() => _ImagePreviewPageState();
@@ -86,17 +98,40 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
       final result = await _pipeline.analyze(input);
       if (!mounted) return;
       setState(() => _isAnalyzing = false);
+      // HU10: every analysis is saved automatically, inconclusive included.
+      final saving = _save(result);
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
-          builder: (_) => ResultPage(image: widget.image, result: result),
+          builder: (_) =>
+              ResultPage(image: widget.image, result: result, saving: saving),
         ),
       );
+      // The camera deletes its temporary photo after this page closes, so
+      // the copy must be finished first.
+      await saving;
       if (!mounted) return;
       // Leaving the result goes back to the camera for the next photo.
       Navigator.of(context).pop(PreviewDecision.analyze);
     } catch (error) {
       debugPrint('Inference failed: $error');
       _showError('No se pudo analizar la imagen.');
+    }
+  }
+
+  /// Returns whether the evaluation was saved.
+  Future<bool> _save(InferenceResult result) async {
+    final service =
+        widget.evaluations ??
+        (locator.isRegistered<EvaluationCommandService>()
+            ? locator<EvaluationCommandService>()
+            : null);
+    if (service == null) return false;
+    try {
+      await service.save(widget.image, result);
+      return true;
+    } catch (error) {
+      debugPrint('Saving the evaluation failed: $error');
+      return false;
     }
   }
 

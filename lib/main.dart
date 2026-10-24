@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'shared/infrastructure/di/service_locator.dart';
 import 'shared/interfaces/ui/theme/app_theme.dart';
 import 'shared/interfaces/ui/pages/home_shell.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Opens the local database (Isar) before the first screen.
+  await setUpServices();
   runApp(const BoviApp());
 }
 
