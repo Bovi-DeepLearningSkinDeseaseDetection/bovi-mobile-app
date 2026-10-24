@@ -23,13 +23,28 @@ class ResultPage extends StatelessWidget {
   static const disclaimerText =
       'Este resultado es preliminar y no reemplaza el diagnóstico de un '
       'médico veterinario.';
-  static const saveLabel = 'Guardar resultado';
   static const retakeLabel = 'Nuevo escaneo';
+  static const savingText = 'Guardando en el historial…';
+  static const savedText = 'Guardado en el historial';
+  static const notSavedText = 'No se pudo guardar en el historial';
 
   final CapturedImage image;
   final InferenceResult result;
 
-  const ResultPage({super.key, required this.image, required this.result});
+  /// Automatic save of a new analysis (HU10); null when nothing is saved.
+  final Future<bool>? saving;
+
+  /// Date of a saved evaluation. When given, the page shows an evaluation of
+  /// the history: with its date and without the scan action.
+  final DateTime? evaluatedAt;
+
+  const ResultPage({
+    super.key,
+    required this.image,
+    required this.result,
+    this.saving,
+    this.evaluatedAt,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +53,9 @@ class ResultPage extends StatelessWidget {
         ? result.ranked
         : result.ranked.take(2).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text(pageTitle)),
+      appBar: AppBar(
+        title: Text(evaluatedAt == null ? pageTitle : 'Evaluación'),
+      ),
       body: SafeArea(
         top: false,
         child: Column(
@@ -51,6 +68,17 @@ class ResultPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _Photo(path: image.path),
+                    if (evaluatedAt != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        formatEvaluationDate(evaluatedAt!),
+                        style: TextTheme.of(context).bodySmall,
+                      ),
+                    ],
+                    if (saving != null) ...[
+                      const SizedBox(height: 12),
+                      _SaveStatus(saving: saving!),
+                    ],
                     const SizedBox(height: 20),
                     _Verdict(result: result),
                     const SizedBox(height: 20),
@@ -68,38 +96,84 @@ class ResultPage extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // The evaluations are saved from HU10 on.
-                  FilledButton.icon(
-                    onPressed: () => ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Guardar resultados estará disponible '
-                            'próximamente.',
-                          ),
-                        ),
-                      ),
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    label: const Text(saveLabel),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text(retakeLabel),
-                  ),
-                ],
+            if (evaluatedAt == null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.photo_camera_rounded),
+                  label: const Text(retakeLabel),
+                ),
               ),
-            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Date and time of an evaluation, for example "24/10/2026 · 10:35".
+String formatEvaluationDate(DateTime date) {
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${two(date.day)}/${two(date.month)}/${date.year} · '
+      '${two(date.hour)}:${two(date.minute)}';
+}
+
+/// Progress of the automatic save of a new analysis.
+class _SaveStatus extends StatelessWidget {
+  final Future<bool> saving;
+
+  const _SaveStatus({required this.saving});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: saving,
+      builder: (context, snapshot) {
+        final Widget icon;
+        final String text;
+        final Color color;
+        if (snapshot.connectionState != ConnectionState.done) {
+          icon = const SizedBox.square(
+            dimension: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+          text = ResultPage.savingText;
+          color = AppColors.secondaryText;
+        } else if (snapshot.data ?? false) {
+          icon = const Icon(
+            Icons.check_circle_rounded,
+            size: 18,
+            color: AppColors.healthyStatus,
+          );
+          text = ResultPage.savedText;
+          color = AppColors.healthyText;
+        } else {
+          icon = const Icon(
+            Icons.error_rounded,
+            size: 18,
+            color: AppColors.reviewStatus,
+          );
+          text = ResultPage.notSavedText;
+          color = AppColors.reviewText;
+        }
+        return Row(
+          children: [
+            icon,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
