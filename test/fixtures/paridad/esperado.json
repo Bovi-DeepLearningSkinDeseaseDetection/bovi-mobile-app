@@ -2,8 +2,10 @@
   "modelo": "bovi_modelo.tflite",
   "clases": [
     "dermatofitosis",
+    "miasis",
     "papilomatosis",
-    "piel_sana"
+    "piel_sana",
+    "sarna"
   ],
   "tolerancia": 0.02,
   "casos": [
@@ -11,9 +13,11 @@
       "archivo": "ds1_dermatofitosis_01150.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.999814,
-        0.000138,
-        4.8e-05
+        0.999643,
+        3e-06,
+        0.000201,
+        2.5e-05,
+        0.000128
       ],
       "prediccion": "dermatofitosis"
     },
@@ -21,29 +25,35 @@
       "archivo": "ds1_dermatofitosis_00176.jpg",
       "clase_real": "dermatofitosis",
       "probabilidades": [
-        0.996322,
-        8.1e-05,
-        0.003598
+        0.999135,
+        0.0,
+        2e-05,
+        0.000844,
+        1e-06
       ],
       "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ds1_dermatofitosis_00044.jpg",
-      "clase_real": "dermatofitosis",
+      "archivo": "cabra_capracaretrain66_000000.jpg",
+      "clase_real": "miasis",
       "probabilidades": [
-        0.999907,
-        8.6e-05,
-        7e-06
+        0.022387,
+        0.787131,
+        0.053217,
+        0.108362,
+        0.028903
       ],
-      "prediccion": "dermatofitosis"
+      "prediccion": "miasis"
     },
     {
-      "archivo": "ds1_dermatofitosis_01313.jpg",
-      "clase_real": "dermatofitosis",
+      "archivo": "rf_cow2train21_004.jpg",
+      "clase_real": "papilomatosis",
       "probabilidades": [
-        0.997777,
-        0.002135,
-        8.8e-05
+        0.465752,
+        4.7e-05,
+        0.452374,
+        0.016969,
+        0.064857
       ],
       "prediccion": "dermatofitosis"
     },
@@ -51,61 +61,61 @@
       "archivo": "ext_kgl-028_001.jpg",
       "clase_real": "papilomatosis",
       "probabilidades": [
-        0.014612,
-        0.594884,
-        0.390504
+        0.769363,
+        3.8e-05,
+        0.13134,
+        0.094896,
+        0.004363
       ],
-      "prediccion": "papilomatosis"
+      "prediccion": "dermatofitosis"
     },
     {
-      "archivo": "ext_kgl-019_001.jpg",
-      "clase_real": "papilomatosis",
-      "probabilidades": [
-        0.065029,
-        0.928077,
-        0.006894
-      ],
-      "prediccion": "papilomatosis"
-    },
-    {
-      "archivo": "rf_cow2train21_004.jpg",
-      "clase_real": "papilomatosis",
-      "probabilidades": [
-        0.286413,
-        0.694613,
-        0.018974
-      ],
-      "prediccion": "papilomatosis"
-    },
-    {
-      "archivo": "ds1_piel_sana_00185.jpg",
+      "archivo": "ds1_piel_sana_00582.jpg",
       "clase_real": "piel_sana",
       "probabilidades": [
-        0.000162,
-        6.1e-05,
-        0.999777
+        0.00045,
+        0.0,
+        2e-06,
+        0.999538,
+        1e-05
       ],
       "prediccion": "piel_sana"
     },
     {
-      "archivo": "ds1_piel_sana_00085.jpg",
+      "archivo": "ds1_piel_sana_00484.jpg",
       "clase_real": "piel_sana",
       "probabilidades": [
-        0.000122,
-        0.000278,
-        0.9996
+        0.002051,
+        0.0,
+        3e-06,
+        0.997944,
+        2e-06
       ],
       "prediccion": "piel_sana"
     },
     {
-      "archivo": "ds1_piel_sana_01539.jpg",
-      "clase_real": "piel_sana",
+      "archivo": "vaca_agrivision8f35b1ee-2ac8-4a11-90d4-6b3ce5f8333a_jpg_000091.jpg",
+      "clase_real": "sarna",
       "probabilidades": [
-        0.078052,
-        1e-06,
-        0.921947
+        0.150705,
+        0.001486,
+        0.025687,
+        0.002825,
+        0.819297
       ],
-      "prediccion": "piel_sana"
+      "prediccion": "sarna"
+    },
+    {
+      "archivo": "vaca_agrivision22-Figure5-1_png.rf.3c29d711c945676eca48_000094.jpg",
+      "clase_real": "sarna",
+      "probabilidades": [
+        0.006108,
+        0.000231,
+        0.015779,
+        0.002489,
+        0.975393
+      ],
+      "prediccion": "sarna"
     }
   ]
 }

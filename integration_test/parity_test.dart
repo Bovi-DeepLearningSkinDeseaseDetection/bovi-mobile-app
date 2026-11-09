@@ -7,8 +7,12 @@
 // limit there is 0.10. A preprocessing bug would also break the confident
 // images, so this criterion still catches it. Do not edit the JSON.
 
+// Below the RF11 threshold (0.60) both must show "No concluyente" with the same
+// two most likely classes, because that is what the farmer sees.
+
 import 'dart:convert';
 
+import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_result.dart';
 import 'package:bov_mobile_app/clinical/infrastructure/ml/tflite/deep_learning_inference_engine.dart';
 import 'package:bov_mobile_app/clinical/infrastructure/vision/computer_vision_preprocessor.dart';
 import 'package:flutter/foundation.dart';
@@ -62,11 +66,25 @@ void main() {
       final got = [
         for (final p in result.probabilities) p.probability.toStringAsFixed(6),
       ];
-      final sameClass = result.top.label == item['prediccion'];
-      final colabConfidence = wanted.reduce((a, b) => a > b ? a : b);
+      // What the farmer sees must match Colab. From the RF11 threshold up that
+      // is the top class. Below it the app shows "No concluyente" with the two
+      // most likely classes, so those two must match in any order: a near tie
+      // can swap order from the JPEG decoder alone (0.466 vs 0.452, v7c).
+      final colabRanked = [for (var i = 0; i < labels.length; i++) i]
+        ..sort((a, b) => wanted[b].compareTo(wanted[a]));
+      final colabConfidence = wanted[colabRanked.first];
+      final bool sameOutcome;
+      if (colabConfidence >= InferenceResult.inconclusiveThreshold) {
+        sameOutcome = result.top.label == item['prediccion'];
+      } else {
+        final colabTopTwo = {labels[colabRanked[0]], labels[colabRanked[1]]};
+        final appTopTwo = {result.ranked[0].label, result.ranked[1].label};
+        sameOutcome =
+            !result.isConclusive && colabTopTwo.containsAll(appTopTwo);
+      }
       final allowed =
       colabConfidence >= confidentThreshold ? tolerance : uncertainTolerance;
-      final ok = sameClass && difference < allowed;
+      final ok = sameOutcome && difference < allowed;
       debugPrint(
         '${ok ? 'OK   ' : 'FALLA'} $name  esperado=$wanted  app=$got  '
         'diferencia=${difference.toStringAsFixed(6)}',
