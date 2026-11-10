@@ -6,10 +6,12 @@ import '../../../application/internal/commandservices/evaluation_command_service
 import '../../../domain/model/aggregates/evaluation.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/clinical_code.dart';
+import '../../../domain/model/value_objects/disease_sheet.dart';
 import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/model/value_objects/model_input.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
 import '../../../infrastructure/catalog/clinical_code_catalog.dart';
+import '../../../infrastructure/catalog/disease_sheet_catalog.dart';
 
 /// Result of the model for the preview, ready to be shown (HU06, HU07).
 class Analysis {
@@ -18,24 +20,29 @@ class Analysis {
   /// Standard codes of the result (HU07).
   final List<ClinicalCode> codes;
 
+  /// Information sheet of the detected disease (HU09).
+  final DiseaseSheet? sheet;
+
   /// Automatic save (HU10): the saved evaluation, or null when it failed.
   final Future<Evaluation?> saving;
 
   const Analysis({
     required this.result,
     required this.codes,
+    required this.sheet,
     required this.saving,
   });
 }
 
 /// Runs the detection pipeline on one image: quality and preprocessing
-/// (HU04, HU05), the model (HU06), its codes (HU07) and the automatic save
-/// (HU10). The preview page only shows the dialogs and the result.
+/// (HU04, HU05), the model (HU06), its codes (HU07), its sheet (HU09) and
+/// the automatic save (HU10). The preview page only shows the dialogs and the result.
 class DetectionPipelineViewModel extends ChangeNotifier {
   final CapturedImage image;
   final DetectionPipelineService _pipeline;
   final EvaluationCommandService? _evaluations;
   final ClinicalCodeCatalog? _codes;
+  final DiseaseSheetCatalog? _sheets;
 
   bool _isAnalyzing = false;
   bool _disposed = false;
@@ -47,9 +54,11 @@ class DetectionPipelineViewModel extends ChangeNotifier {
     DetectionPipelineService? pipeline,
     EvaluationCommandService? evaluations,
     ClinicalCodeCatalog? codes,
+    DiseaseSheetCatalog? sheets,
   }) : _pipeline = pipeline ?? DetectionPipelineService(),
        _evaluations = evaluations ?? _registered<EvaluationCommandService>(),
-       _codes = codes ?? _registered<ClinicalCodeCatalog>();
+       _codes = codes ?? _registered<ClinicalCodeCatalog>(),
+       _sheets = sheets ?? _registered<DiseaseSheetCatalog>();
 
   static T? _registered<T extends Object>() =>
       locator.isRegistered<T>() ? locator<T>() : null;
@@ -68,6 +77,7 @@ class DetectionPipelineViewModel extends ChangeNotifier {
     return Analysis(
       result: result,
       codes: _codes?.codesFor(result) ?? const [],
+      sheet: _sheets?.sheetFor(result),
       saving: _save(result),
     );
   });

@@ -4,6 +4,7 @@ import '../../../../shared/interfaces/ui/formatters/date_formatters.dart';
 import '../../../domain/model/aggregates/evaluation.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/clinical_code.dart';
+import '../../../domain/model/value_objects/disease_sheet.dart';
 import '../../../domain/model/value_objects/inference_result.dart';
 import '../widgets/result/evaluation_animal_section.dart';
 import '../widgets/result/clinical_codes_card.dart';
@@ -13,6 +14,7 @@ import '../widgets/result/result_photo.dart';
 import '../widgets/result/result_texts.dart';
 import '../widgets/result/result_verdict.dart';
 import '../widgets/result/save_status.dart';
+import 'disease_sheet_page.dart';
 
 /// Shows the preliminary result of the analysis (HU07, HU08, HU09), or a
 /// saved evaluation of the history (HU11, scenario 3).
@@ -31,6 +33,10 @@ class ResultPage extends StatelessWidget {
   /// Standard codes of the result (HU07): MeSH and NCBI Taxonomy.
   final List<ClinicalCode> codes;
 
+  /// Information sheet of the detected disease (HU09); null for healthy
+  /// skin and inconclusive results.
+  final DiseaseSheet? sheet;
+
   const ResultPage({
     super.key,
     required this.image,
@@ -38,7 +44,14 @@ class ResultPage extends StatelessWidget {
     this.saving,
     this.evaluation,
     this.codes = const [],
+    this.sheet,
   });
+
+  void _openSheet(BuildContext context, DiseaseSheet sheet) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => DiseaseSheetPage(sheet: sheet)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +91,12 @@ class ResultPage extends StatelessWidget {
                       SaveStatus(saving: saving!),
                     ],
                     const SizedBox(height: 20),
-                    ResultVerdict(result: result),
+                    ResultVerdict(
+                      result: result,
+                      onMore: sheet == null
+                          ? null
+                          : () => _openSheet(context, sheet!),
+                    ),
                     if (codes.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       ClinicalCodesCard(codes: codes),
@@ -109,7 +127,11 @@ class ResultPage extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.photo_camera_rounded),
-                  label: const Text(ResultTexts.retakeLabel),
+                  label: Text(
+                    result.isConclusive
+                        ? ResultTexts.retakeLabel
+                        : ResultTexts.inconclusiveRetakeLabel,
+                  ),
                 ),
               ),
           ],

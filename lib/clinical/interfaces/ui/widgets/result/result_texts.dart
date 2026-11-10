@@ -17,6 +17,10 @@ class ResultTexts {
       'Este resultado es preliminar y no reemplaza el diagnóstico de un '
       'médico veterinario.';
   static const retakeLabel = 'Nuevo escaneo';
+
+  /// HU08, scenario 2: the action an inconclusive result recommends.
+  static const inconclusiveRetakeLabel = 'Tomar otra foto';
+  static const moreLabel = 'Ver más';
   static const savingText = 'Guardando en el historial…';
   static const savedText = 'Guardado en el historial';
   static const notSavedText = 'No se pudo guardar en el historial';

@@ -13,7 +13,9 @@ class GuideFrame extends StatefulWidget {
 
   const GuideFrame({super.key, this.isSteady = true});
 
-  static const instructionText = 'Encuadre la lesión dentro del marco';
+  /// HU03, scenario 1.
+  static const instructionText =
+      'Acérquese a 30–60 cm y centre la lesión en el recuadro';
   static const holdStillText = 'Mantenga el celular quieto';
   static const distanceText = '30 - 60 cm';
 
@@ -117,37 +119,58 @@ class _GuideFrameState extends State<GuideFrame> with TickerProviderStateMixin {
               },
             ),
             const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: Text(
-                    steady
-                        ? GuideFrame.instructionText
-                        : GuideFrame.holdStillText,
-                    key: ValueKey(steady),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
+            _GuideMessage(
+              text: steady
+                  ? GuideFrame.instructionText
+                  : GuideFrame.holdStillText,
+              width: constraints.maxWidth,
             ),
           ],
         );
       },
+    );
+  }
+}
+
+/// Instruction under the frame. Its size follows the screen width, so it
+/// reads well on small phones and does not grow too much on tablets.
+class _GuideMessage extends StatelessWidget {
+  final String text;
+  final double width;
+
+  const _GuideMessage({required this.text, required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = (width * 0.04).clamp(13.0, 17.0);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: (width * 0.06).clamp(16, 32)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: Text(
+              text,
+              key: ValueKey(text),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: fontSize,
+                height: 1.3,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

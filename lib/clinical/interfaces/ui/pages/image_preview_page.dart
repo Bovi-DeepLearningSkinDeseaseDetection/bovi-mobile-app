@@ -115,6 +115,7 @@ class _PreviewViewState extends State<_PreviewView> {
           result: analysis.result,
           saving: analysis.saving,
           codes: analysis.codes,
+          sheet: analysis.sheet,
         ),
       ),
     );
