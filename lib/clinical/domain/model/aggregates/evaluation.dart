@@ -1,5 +1,6 @@
 import '../../../../shared/domain/model/sync_status.dart';
 import '../value_objects/body_zone.dart';
+import '../value_objects/clinical_code.dart';
 import '../value_objects/evaluation_outcome.dart';
 import '../value_objects/inference_result.dart';
 import '../value_objects/origin_image.dart';
@@ -21,8 +22,13 @@ class Evaluation {
   /// Probabilities, model version and inference time (RNF17).
   final InferenceResult result;
 
-  /// VeNom code; pending until the veterinary catalog is validated (HU07).
-  final String? venomCode;
+  /// Standard codes of the result: MeSH for the disease and NCBI Taxonomy
+  /// for its causal agent (HU07). Empty for healthy skin and inconclusive
+  /// results.
+  final List<ClinicalCode> clinicalCodes;
+
+  /// Edition of the code catalog used, so old codes stay traceable.
+  final String? catalogVersion;
 
   /// Animal and body zone, assigned from HU15 on.
   final int? animalId;
@@ -39,7 +45,8 @@ class Evaluation {
     required this.thumbnailPath,
     required this.origin,
     required this.result,
-    this.venomCode,
+    this.clinicalCodes = const [],
+    this.catalogVersion,
     this.animalId,
     this.animalEarTag,
     this.bodyZone,
