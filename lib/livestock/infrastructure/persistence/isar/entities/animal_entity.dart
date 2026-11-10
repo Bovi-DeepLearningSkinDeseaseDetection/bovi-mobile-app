@@ -7,8 +7,6 @@ part 'animal_entity.g.dart';
 
 /// Isar collection `animals`: animals of the farm (HU15).
 ///
-/// Defined ahead of HU15 so the database layout is complete; nothing writes
-/// to it yet.
 @Collection(accessor: 'animals')
 @Name('animals')
 class AnimalEntity {
@@ -29,6 +27,11 @@ class AnimalEntity {
 
   late DateTime createdAt;
   late DateTime updatedAt;
+
+  /// Last time the animal was linked to an evaluation. The picker lists the
+  /// most recent animals first, so one can be chosen in two taps (HU15).
+  @Index()
+  DateTime? lastEvaluatedAt;
 
   @Enumerated(EnumType.name)
   late SyncStatus syncStatus;

@@ -2,13 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../../shared/domain/model/sync_status.dart';
-import '../../../../shared/interfaces/ui/theme/app_colors.dart';
-import '../../../../shared/interfaces/ui/widgets/status_badge.dart';
-import '../../../domain/model/aggregates/evaluation.dart';
-import '../../../domain/model/value_objects/evaluation_outcome.dart';
-import '../../../infrastructure/catalog/lesion_class_catalog.dart';
-import '../pages/result_page.dart';
+import '../../../../../shared/domain/model/sync_status.dart';
+import '../../../../../shared/interfaces/ui/theme/app_colors.dart';
+import '../../../../../shared/interfaces/ui/widgets/status_badge.dart';
+import '../../../../domain/model/aggregates/evaluation.dart';
+import '../../../../domain/model/value_objects/evaluation_outcome.dart';
+import '../../../../infrastructure/catalog/lesion_class_catalog.dart';
+import '../../../../../shared/interfaces/ui/formatters/date_formatters.dart';
+import '../result/result_texts.dart';
 
 /// Informative card of the history: thumbnail, result, date, status badge
 /// and synchronization state (HU11, scenario 1).
@@ -25,8 +26,17 @@ class EvaluationCard extends StatelessWidget {
   /// Headline of the result, as on the result screen.
   static String titleOf(Evaluation evaluation) =>
       evaluation.outcome == EvaluationOutcome.inconclusive
-      ? ResultPage.inconclusiveTitle
+      ? ResultTexts.inconclusiveTitle
       : LesionClassCatalog.resultTitle(evaluation.result.top.label);
+
+  /// Animal and body zone (HU11, scenario 1), for example
+  /// "Arete PE0012 · Lomo", or "Sin animal".
+  static String animalText(Evaluation evaluation) {
+    final earTag = evaluation.animalEarTag;
+    if (earTag == null) return 'Sin animal';
+    final zone = evaluation.bodyZone;
+    return zone == null ? 'Arete $earTag' : 'Arete $earTag · ${zone.label}';
+  }
 
   static HealthStatus statusOf(EvaluationOutcome outcome) => switch (outcome) {
     EvaluationOutcome.healthy => HealthStatus.healthy,
@@ -80,9 +90,21 @@ class EvaluationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${formatEvaluationDate(evaluation.createdAt)} · '
+                      '${DateFormatters.dayAndTime(evaluation.createdAt)} · '
                       '${top.percentText}',
                       style: textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      animalText(evaluation),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: evaluation.animalEarTag == null
+                            ? AppColors.secondaryText
+                            : AppColors.darkGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(

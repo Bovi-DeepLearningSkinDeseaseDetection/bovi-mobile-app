@@ -24,24 +24,29 @@ const AnimalEntitySchema = CollectionSchema(
       type: IsarType.dateTime,
     ),
     r'earTag': PropertySchema(id: 2, name: r'earTag', type: IsarType.string),
-    r'sex': PropertySchema(
+    r'lastEvaluatedAt': PropertySchema(
       id: 3,
+      name: r'lastEvaluatedAt',
+      type: IsarType.dateTime,
+    ),
+    r'sex': PropertySchema(
+      id: 4,
       name: r'sex',
       type: IsarType.string,
       enumMap: _AnimalEntitysexEnumValueMap,
     ),
     r'syncStatus': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _AnimalEntitysyncStatusEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
-    r'uuid': PropertySchema(id: 6, name: r'uuid', type: IsarType.string),
+    r'uuid': PropertySchema(id: 7, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _animalEntityEstimateSize,
@@ -72,6 +77,19 @@ const AnimalEntitySchema = CollectionSchema(
         IndexPropertySchema(
           name: r'earTag',
           type: IndexType.hash,
+          caseSensitive: false,
+        ),
+      ],
+    ),
+    r'lastEvaluatedAt': IndexSchema(
+      id: -513909677624340809,
+      name: r'lastEvaluatedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastEvaluatedAt',
+          type: IndexType.value,
           caseSensitive: false,
         ),
       ],
@@ -109,10 +127,11 @@ void _animalEntitySerialize(
   writer.writeString(offsets[0], object.breed);
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeString(offsets[2], object.earTag);
-  writer.writeString(offsets[3], object.sex.name);
-  writer.writeString(offsets[4], object.syncStatus.name);
-  writer.writeDateTime(offsets[5], object.updatedAt);
-  writer.writeString(offsets[6], object.uuid);
+  writer.writeDateTime(offsets[3], object.lastEvaluatedAt);
+  writer.writeString(offsets[4], object.sex.name);
+  writer.writeString(offsets[5], object.syncStatus.name);
+  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeString(offsets[7], object.uuid);
 }
 
 AnimalEntity _animalEntityDeserialize(
@@ -126,16 +145,17 @@ AnimalEntity _animalEntityDeserialize(
   object.createdAt = reader.readDateTime(offsets[1]);
   object.earTag = reader.readString(offsets[2]);
   object.id = id;
+  object.lastEvaluatedAt = reader.readDateTimeOrNull(offsets[3]);
   object.sex =
-      _AnimalEntitysexValueEnumMap[reader.readStringOrNull(offsets[3])] ??
+      _AnimalEntitysexValueEnumMap[reader.readStringOrNull(offsets[4])] ??
       AnimalSex.female;
   object.syncStatus =
       _AnimalEntitysyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[4],
+        offsets[5],
       )] ??
       SyncStatus.pending;
-  object.updatedAt = reader.readDateTime(offsets[5]);
-  object.uuid = reader.readString(offsets[6]);
+  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.uuid = reader.readString(offsets[7]);
   return object;
 }
 
@@ -153,18 +173,20 @@ P _animalEntityDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 4:
       return (_AnimalEntitysexValueEnumMap[reader.readStringOrNull(offset)] ??
               AnimalSex.female)
           as P;
-    case 4:
+    case 5:
       return (_AnimalEntitysyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.pending)
           as P;
-    case 5:
-      return (reader.readDateTime(offset)) as P;
     case 6:
+      return (reader.readDateTime(offset)) as P;
+    case 7:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -320,6 +342,14 @@ extension AnimalEntityQueryWhereSort
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhere> anyLastEvaluatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'lastEvaluatedAt'),
+      );
     });
   }
 }
@@ -501,6 +531,135 @@ extension AnimalEntityQueryWhere
               ),
             );
       }
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'lastEvaluatedAt', value: [null]),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'lastEvaluatedAt',
+          lower: [null],
+          includeLower: false,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtEqualTo(DateTime? lastEvaluatedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'lastEvaluatedAt',
+          value: [lastEvaluatedAt],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtNotEqualTo(DateTime? lastEvaluatedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'lastEvaluatedAt',
+                lower: [],
+                upper: [lastEvaluatedAt],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'lastEvaluatedAt',
+                lower: [lastEvaluatedAt],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'lastEvaluatedAt',
+                lower: [lastEvaluatedAt],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'lastEvaluatedAt',
+                lower: [],
+                upper: [lastEvaluatedAt],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtGreaterThan(
+    DateTime? lastEvaluatedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'lastEvaluatedAt',
+          lower: [lastEvaluatedAt],
+          includeLower: include,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtLessThan(DateTime? lastEvaluatedAt, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'lastEvaluatedAt',
+          lower: [],
+          upper: [lastEvaluatedAt],
+          includeUpper: include,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  lastEvaluatedAtBetween(
+    DateTime? lowerLastEvaluatedAt,
+    DateTime? upperLastEvaluatedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'lastEvaluatedAt',
+          lower: [lowerLastEvaluatedAt],
+          includeLower: includeLower,
+          upper: [upperLastEvaluatedAt],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -903,6 +1062,79 @@ extension AnimalEntityQueryFilter
       return query.addFilterCondition(
         FilterCondition.between(
           property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'lastEvaluatedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'lastEvaluatedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'lastEvaluatedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lastEvaluatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lastEvaluatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  lastEvaluatedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lastEvaluatedAt',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -1448,6 +1680,20 @@ extension AnimalEntityQuerySortBy
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy>
+  sortByLastEvaluatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastEvaluatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy>
+  sortByLastEvaluatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastEvaluatedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.asc);
@@ -1548,6 +1794,20 @@ extension AnimalEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy>
+  thenByLastEvaluatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastEvaluatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy>
+  thenByLastEvaluatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastEvaluatedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.asc);
@@ -1622,6 +1882,13 @@ extension AnimalEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QDistinct>
+  distinctByLastEvaluatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastEvaluatedAt');
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctBySex({
     bool caseSensitive = true,
   }) {
@@ -1676,6 +1943,13 @@ extension AnimalEntityQueryProperty
   QueryBuilder<AnimalEntity, String, QQueryOperations> earTagProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'earTag');
+    });
+  }
+
+  QueryBuilder<AnimalEntity, DateTime?, QQueryOperations>
+  lastEvaluatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastEvaluatedAt');
     });
   }
 

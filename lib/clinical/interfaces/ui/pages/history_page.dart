@@ -1,59 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../livestock/interfaces/acl/livestock_context_facade.dart';
 import '../../../../shared/infrastructure/di/service_locator.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
-import '../../../../shared/interfaces/ui/widgets/icon_bubble.dart';
 import '../../../domain/model/aggregates/evaluation.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/repositories/evaluation_repository.dart';
-import '../../../infrastructure/catalog/lesion_class_catalog.dart';
-import '../widgets/evaluation_card.dart';
+import '../viewmodels/history_view_model.dart';
+import '../widgets/history/empty_history.dart';
+import '../widgets/history/evaluation_card.dart';
+import '../widgets/history/history_filter_sheet.dart';
+import '../widgets/history/history_list_header.dart';
 import 'result_page.dart';
 
-/// Evaluations saved on the device, newest first (HU11).
-class HistoryPage extends StatefulWidget {
-  static const searchHint = 'Buscar animal o diagnóstico';
-  static const emptyTitle = 'Aún no tiene evaluaciones';
-  static const emptyMessage =
-      'Los análisis que realice se guardan aquí automáticamente, '
-      'aunque no tenga internet.';
-  static const noMatchesText = 'Ninguna evaluación coincide con la búsqueda.';
-
+/// Evaluations saved on the device, newest first, with filters (HU11). The
+/// state lives in [HistoryViewModel].
+class HistoryPage extends StatelessWidget {
   final VoidCallback onScan;
 
   /// Source of the evaluations. Without it, the registered one is used.
   final EvaluationRepository? repository;
 
-  const HistoryPage({super.key, required this.onScan, this.repository});
+  /// Animal search for the animal filter. Without it, the registered one.
+  final LivestockContextFacade? livestock;
+
+  const HistoryPage({
+    super.key,
+    required this.onScan,
+    this.repository,
+    this.livestock,
+  });
+
+  static T? _registered<T extends Object>() =>
+      locator.isRegistered<T>() ? locator<T>() : null;
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) =>
+          HistoryViewModel(repository ?? _registered<EvaluationRepository>()),
+      child: _HistoryView(
+        onScan: onScan,
+        livestock: livestock ?? _registered<LivestockContextFacade>(),
+      ),
+    );
+  }
 }
 
-class _HistoryPageState extends State<HistoryPage> {
-  late final Stream<List<Evaluation>> _evaluations =
-      _repository?.watchAll() ?? Stream.value(const []);
-  String _query = '';
+class _HistoryView extends StatelessWidget {
+  final VoidCallback onScan;
+  final LivestockContextFacade? livestock;
 
-  EvaluationRepository? get _repository =>
-      widget.repository ??
-      (locator.isRegistered<EvaluationRepository>()
-          ? locator<EvaluationRepository>()
-          : null);
+  const _HistoryView({required this.onScan, required this.livestock});
 
-  // Matches the result headline, the class name or the ear tag.
-  bool _matches(Evaluation evaluation) {
-    final query = _query.trim().toLowerCase();
-    if (query.isEmpty) return true;
-    final texts = [
-      EvaluationCard.titleOf(evaluation),
-      LesionClassCatalog.displayName(evaluation.result.top.label),
-      evaluation.animalEarTag ?? '',
-    ];
-    return texts.any((text) => text.toLowerCase().contains(query));
-  }
-
-  void _open(Evaluation evaluation) {
+  // HU11, scenario 3: the full image and every datum of the result.
+  void _open(BuildContext context, Evaluation evaluation) {
     Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => ResultPage(
@@ -64,102 +66,70 @@ class _HistoryPageState extends State<HistoryPage> {
             height: 0,
           ),
           result: evaluation.result,
-          evaluatedAt: evaluation.createdAt,
+          evaluation: evaluation,
           codes: evaluation.clinicalCodes,
         ),
       ),
     );
   }
 
+  Future<void> _editFilters(
+    BuildContext context,
+    HistoryViewModel model,
+  ) async {
+    final filter = await showHistoryFilters(
+      context,
+      filter: model.filter,
+      livestock: livestock,
+    );
+    if (filter != null) model.filter = filter;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final model = context.watch<HistoryViewModel>();
+    final active = model.filter.activeCount;
     return Scaffold(
-      appBar: AppBar(title: const Text('Historial')),
-      body: StreamBuilder<List<Evaluation>>(
-        stream: _evaluations,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final all = snapshot.data!;
-          if (all.isEmpty) return _EmptyHistory(onScan: widget.onScan);
-          final shown = all.where(_matches).toList();
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            itemCount: shown.length + 1,
-            separatorBuilder: (_, index) =>
-                SizedBox(height: index == 0 ? 20 : 12),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SearchBar(
-                      hintText: HistoryPage.searchHint,
-                      leading: const Icon(
-                        Icons.search_rounded,
-                        color: AppColors.secondaryText,
-                      ),
-                      onChanged: (value) => setState(() => _query = value),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      shown.isEmpty
-                          ? HistoryPage.noMatchesText
-                          : '${shown.length} '
-                                '${shown.length == 1 ? 'evaluación' : 'evaluaciones'}',
-                      style: TextTheme.of(context).bodySmall,
-                    ),
-                  ],
-                );
-              }
-              final evaluation = shown[index - 1];
-              return EvaluationCard(
-                evaluation: evaluation,
-                onTap: () => _open(evaluation),
-              );
-            },
-          );
-        },
+      appBar: AppBar(
+        title: const Text('Historial'),
+        actions: [
+          IconButton(
+            tooltip: 'Filtrar',
+            onPressed: () => _editFilters(context, model),
+            icon: Badge(
+              isLabelVisible: active > 0,
+              label: Text('$active'),
+              backgroundColor: AppColors.primaryGreen,
+              child: const Icon(Icons.tune_rounded),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
+      body: _body(context, model),
     );
   }
-}
 
-/// HU11, scenario 4: no evaluations yet.
-class _EmptyHistory extends StatelessWidget {
-  final VoidCallback onScan;
-
-  const _EmptyHistory({required this.onScan});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 64, 20, 24),
-      children: [
-        const Center(
-          child: IconBubble(icon: Icon(Icons.article_outlined), size: 96),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          HistoryPage.emptyTitle,
-          textAlign: TextAlign.center,
-          style: textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          HistoryPage.emptyMessage,
-          textAlign: TextAlign.center,
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.bodyText),
-        ),
-        const SizedBox(height: 28),
-        FilledButton.icon(
-          onPressed: onScan,
-          icon: const Icon(Icons.photo_camera_rounded),
-          label: const Text('Escanear ahora'),
-        ),
-      ],
+  Widget _body(BuildContext context, HistoryViewModel model) {
+    final evaluations = model.evaluations;
+    if (evaluations == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (model.isEmptyHistory) return EmptyHistory(onScan: onScan);
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      itemCount: evaluations.length + 1,
+      separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 16 : 12),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return HistoryListHeader(model: model, count: evaluations.length);
+        }
+        final evaluation = evaluations[index - 1];
+        return EvaluationCard(
+          evaluation: evaluation,
+          onTap: () => _open(context, evaluation),
+        );
+      },
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_res
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/result_page.dart';
 import 'package:bov_mobile_app/shared/interfaces/ui/widgets/status_badge.dart';
+import 'package:bov_mobile_app/clinical/interfaces/ui/widgets/result/result_texts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,7 +39,7 @@ void main() {
     expect(find.text('Indicios de dermatofitosis'), findsOneWidget);
     expect(find.text('Confianza: 91 %'), findsOneWidget);
     expect(find.text(HealthStatus.lesion.label), findsOneWidget);
-    expect(find.text(ResultPage.disclaimerText), findsOneWidget);
+    expect(find.text(ResultTexts.disclaimerText), findsOneWidget);
   });
 
   // HU07, scenario 2.
@@ -54,13 +55,13 @@ void main() {
   testWidgets('low confidence shows an inconclusive result', (tester) async {
     await _show(tester, [0.55, 0.45]);
 
-    expect(find.text(ResultPage.inconclusiveTitle), findsOneWidget);
-    expect(find.text(ResultPage.inconclusiveAdvice), findsOneWidget);
+    expect(find.text(ResultTexts.inconclusiveTitle), findsOneWidget);
+    expect(find.text(ResultTexts.inconclusiveAdvice), findsOneWidget);
     expect(find.text(HealthStatus.review.label), findsOneWidget);
     expect(find.text('Indicios de dermatofitosis'), findsNothing);
     expect(find.text('55 %'), findsOneWidget);
     expect(find.text('45 %'), findsOneWidget);
-    expect(find.text(ResultPage.disclaimerText), findsOneWidget);
+    expect(find.text(ResultTexts.disclaimerText), findsOneWidget);
   });
 
   // HU07, scenario 1: the standard codes of the disease are shown.
