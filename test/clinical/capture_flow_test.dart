@@ -10,6 +10,7 @@ import 'package:bov_mobile_app/clinical/interfaces/ui/pages/image_preview_page.d
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/result_page.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/widgets/low_resolution_dialog.dart';
 import 'package:bov_mobile_app/shared/interfaces/ui/widgets/connection_status_chip.dart';
+import 'package:bov_mobile_app/clinical/interfaces/ui/widgets/result/result_texts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -149,7 +150,7 @@ void main() {
       expect(pipeline.analyzeCalls, 1);
       expect(find.byType(ResultPage), findsOneWidget);
 
-      await tester.tap(find.text(ResultPage.retakeLabel));
+      await tester.tap(find.text(ResultTexts.retakeLabel));
       await tester.pumpAndSettle();
       expect(result(), PreviewDecision.analyze);
     });
@@ -213,7 +214,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ResultPage), findsOneWidget);
 
-      await tester.tap(find.text(ResultPage.retakeLabel));
+      await tester.tap(find.text(ResultTexts.retakeLabel));
       await tester.pumpAndSettle();
       expect(result(), PreviewDecision.analyze);
     });

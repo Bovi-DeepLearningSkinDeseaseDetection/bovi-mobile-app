@@ -2,7 +2,10 @@ import 'package:isar_community/isar.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../../domain/model/aggregates/evaluation.dart';
+import '../../../../domain/model/queries/evaluation_filter.dart';
+import '../../../../domain/model/value_objects/body_zone.dart';
 import '../../../../domain/model/value_objects/clinical_code.dart';
+import '../../../../domain/model/value_objects/evaluation_outcome.dart';
 import '../../../../domain/model/value_objects/inference_result.dart';
 import '../../../../domain/repositories/evaluation_repository.dart';
 import '../../../storage/evaluation_image_store.dart';
@@ -22,13 +25,56 @@ class IsarEvaluationRepository implements EvaluationRepository {
     return _toDomain(entity);
   }
 
+  // The date range walks the createdAt index backwards, so the results come
+  // out newest first without sorting; the other filters are applied on the
+  // way (HU11, scenario 5).
   @override
-  Stream<List<Evaluation>> watchAll() {
+  Stream<List<Evaluation>> watch([
+    EvaluationFilter filter = EvaluationFilter.none,
+  ]) {
+    final conditions = <_Condition>[
+      if (filter.animalId != null) (q) => q.animalIdEqualTo(filter.animalId),
+      if (filter.inconclusive)
+        (q) => q.outcomeEqualTo(EvaluationOutcome.inconclusive),
+      if (filter.label != null)
+        (q) => q
+            .topLabelEqualTo(filter.label!)
+            .and()
+            .not()
+            .outcomeEqualTo(EvaluationOutcome.inconclusive),
+      if (filter.syncStatus != null)
+        (q) => q.syncStatusEqualTo(filter.syncStatus!),
+    ];
     return _isar.evaluations
-        .where()
-        .sortByCreatedAtDesc()
+        .where(sort: Sort.desc)
+        .createdAtBetween(filter.start ?? _firstDate, filter.end ?? _lastDate)
+        .filter()
+        .allOf(conditions, (q, condition) => condition(q))
         .watch(fireImmediately: true)
         .asyncMap((entities) => Future.wait(entities.map(_toDomain)));
+  }
+
+  static final _firstDate = DateTime.fromMillisecondsSinceEpoch(0);
+  static final _lastDate = DateTime(9999);
+
+  @override
+  Future<Evaluation> assignAnimal(
+    int evaluationId, {
+    required int animalId,
+    required String animalEarTag,
+    required BodyZone bodyZone,
+  }) async {
+    final entity = await _isar.evaluations.get(evaluationId);
+    if (entity == null) {
+      throw StateError('Evaluation $evaluationId does not exist.');
+    }
+    entity
+      ..animalId = animalId
+      ..animalEarTag = animalEarTag
+      ..bodyZone = bodyZone
+      ..updatedAt = DateTime.now();
+    await _isar.writeTxn(() => _isar.evaluations.put(entity));
+    return _toDomain(entity);
   }
 
   EvaluationEntity _toEntity(Evaluation evaluation) {
@@ -100,3 +146,9 @@ class IsarEvaluationRepository implements EvaluationRepository {
     );
   }
 }
+
+typedef _Condition =
+    QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+    Function(
+      QueryBuilder<EvaluationEntity, EvaluationEntity, QFilterCondition> q,
+    );

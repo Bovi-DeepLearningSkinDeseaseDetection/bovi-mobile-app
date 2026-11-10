@@ -21,6 +21,15 @@ class LesionClassCatalog {
     'miasis': 'Miasis',
   };
 
+  /// Classes of the model, healthy skin first, for the history filters.
+  static const labels = [
+    'piel_sana',
+    'dermatofitosis',
+    'papilomatosis',
+    'sarna',
+    'miasis',
+  ];
+
   static bool isHealthy(String label) =>
       _healthyLabels.contains(label.toLowerCase());
 

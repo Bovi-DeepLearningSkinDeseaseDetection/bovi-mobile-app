@@ -1,30 +1,29 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
-import '../../../../shared/infrastructure/di/service_locator.dart';
-import '../../../../shared/interfaces/ui/widgets/stethoscope_icon.dart';
 import '../../../application/internal/commandservices/detection_pipeline_service.dart';
 import '../../../application/internal/commandservices/evaluation_command_service.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
-import '../../../infrastructure/catalog/clinical_code_catalog.dart';
-import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/model/value_objects/model_input.dart';
-import '../../../domain/model/value_objects/origin_image.dart';
+import '../viewmodels/detection_pipeline_view_model.dart';
+import '../widgets/preview/preview_actions.dart';
 import '../widgets/quality_issue_dialog.dart';
 import 'result_page.dart';
 
 /// What the user decided on the preview screen.
 enum PreviewDecision { analyze, retake }
 
-/// Shows the captured or selected image before it is analyzed.
-class ImagePreviewPage extends StatefulWidget {
+/// Shows the captured or selected image before it is analyzed. The pipeline
+/// runs in [DetectionPipelineViewModel]; this page shows its dialogs and
+/// the result.
+class ImagePreviewPage extends StatelessWidget {
   final CapturedImage image;
   final DetectionPipelineService? pipeline;
 
-  /// Saves each analysis (HU10). Without it, the registered service is used;
-  /// if there is none, as in widget tests, nothing is saved.
+  /// Saves each analysis (HU10). Without it, the registered service is used.
   final EvaluationCommandService? evaluations;
 
   const ImagePreviewPage({
@@ -35,116 +34,106 @@ class ImagePreviewPage extends StatefulWidget {
   });
 
   @override
-  State<ImagePreviewPage> createState() => _ImagePreviewPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => DetectionPipelineViewModel(
+        image,
+        pipeline: pipeline,
+        evaluations: evaluations,
+      ),
+      child: const _PreviewView(),
+    );
+  }
 }
 
-class _ImagePreviewPageState extends State<ImagePreviewPage> {
-  late final DetectionPipelineService _pipeline =
-      widget.pipeline ?? DetectionPipelineService();
-  bool _isAnalyzing = false;
+class _PreviewView extends StatefulWidget {
+  const _PreviewView();
 
-  bool get _fromCamera => widget.image.origin == ImageOrigin.camera;
+  @override
+  State<_PreviewView> createState() => _PreviewViewState();
+}
 
-  String get _retakeLabel => _fromCamera ? 'Repetir' : 'Elegir otra';
+class _PreviewViewState extends State<_PreviewView> {
+  DetectionPipelineViewModel get _model =>
+      context.read<DetectionPipelineViewModel>();
 
-  // HU04 and HU05: validate the quality and prepare the image for the model.
+  String get _qualityRetakeLabel =>
+      _model.fromCamera ? 'Tomar otra foto' : 'Elegir otra';
+
+  // HU04: a rejected photo can only be retaken; a doubtful one can also be
+  // analyzed anyway.
   Future<void> _analyze() async {
-    setState(() => _isAnalyzing = true);
     try {
-      final outcome = await _pipeline.run(widget.image);
+      final outcome = await _model.checkQuality();
       if (!mounted) return;
       switch (outcome) {
         case RejectedByQuality(:final report):
-          setState(() => _isAnalyzing = false);
           final choice = await showQualityDialog(
             context,
             report: report,
             retakeLabel: _qualityRetakeLabel,
           );
-          if (!mounted) return;
-          if (choice == QualityDialogChoice.retake) {
-            Navigator.of(context).pop(PreviewDecision.retake);
-          }
+          if (choice == QualityDialogChoice.retake) _leave(retake: true);
         case QualityWarning(:final input, :final report):
-          setState(() => _isAnalyzing = false);
           final choice = await showQualityDialog(
             context,
             report: report,
             retakeLabel: _qualityRetakeLabel,
           );
-          if (!mounted) return;
           switch (choice) {
             case QualityDialogChoice.retake:
-              Navigator.of(context).pop(PreviewDecision.retake);
+              _leave(retake: true);
             case QualityDialogChoice.analyzeAnyway:
-              await _classify(input);
+              await _showResult(input);
             case QualityDialogChoice.close:
               break;
           }
         case ReadyForInference(:final input):
-          await _classify(input);
+          await _showResult(input);
       }
     } catch (_) {
       _showError('No se pudo procesar la imagen.');
     }
   }
 
-  String get _qualityRetakeLabel =>
-      _fromCamera ? 'Tomar otra foto' : 'Elegir otra';
-
-  // HU06: run the model on the device and show the preliminary result.
-  Future<void> _classify(ModelInput input) async {
-    setState(() => _isAnalyzing = true);
+  // HU06 and HU07: the result, while it is saved in the background (HU10).
+  Future<void> _showResult(ModelInput input) async {
+    final model = _model;
+    final Analysis analysis;
     try {
-      final result = await _pipeline.analyze(input);
-      if (!mounted) return;
-      setState(() => _isAnalyzing = false);
-      // HU10: every analysis is saved automatically, inconclusive included.
-      final saving = _save(result);
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) => ResultPage(
-            image: widget.image,
-            result: result,
-            saving: saving,
-            codes: locator.isRegistered<ClinicalCodeCatalog>()
-                ? locator<ClinicalCodeCatalog>().codesFor(result)
-                : const [],
-          ),
-        ),
-      );
-      // The camera deletes its temporary photo after this page closes, so
-      // the copy must be finished first.
-      await saving;
-      if (!mounted) return;
-      // Leaving the result goes back to the camera for the next photo.
-      Navigator.of(context).pop(PreviewDecision.analyze);
+      analysis = await model.classify(input);
     } catch (error) {
       debugPrint('Inference failed: $error');
       _showError('No se pudo analizar la imagen.');
+      return;
     }
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ResultPage(
+          image: model.image,
+          result: analysis.result,
+          saving: analysis.saving,
+          codes: analysis.codes,
+        ),
+      ),
+    );
+    // The camera deletes its temporary photo after this page closes, so
+    // the copy must be finished first.
+    await analysis.saving;
+    // Leaving the result goes back to the camera for the next photo.
+    _leave(retake: false);
   }
 
-  /// Returns whether the evaluation was saved.
-  Future<bool> _save(InferenceResult result) async {
-    final service =
-        widget.evaluations ??
-        (locator.isRegistered<EvaluationCommandService>()
-            ? locator<EvaluationCommandService>()
-            : null);
-    if (service == null) return false;
-    try {
-      await service.save(widget.image, result);
-      return true;
-    } catch (error) {
-      debugPrint('Saving the evaluation failed: $error');
-      return false;
-    }
+  void _leave({required bool retake}) {
+    if (!mounted) return;
+    Navigator.of(
+      context,
+    ).pop(retake ? PreviewDecision.retake : PreviewDecision.analyze);
   }
 
   void _showError(String message) {
     if (!mounted) return;
-    setState(() => _isAnalyzing = false);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
@@ -152,6 +141,7 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final model = context.watch<DetectionPipelineViewModel>();
     return Scaffold(
       appBar: AppBar(title: const Text('Vista previa')),
       body: Column(
@@ -166,7 +156,7 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                   color: Colors.black,
                   child: Center(
                     child: Image.file(
-                      File(widget.image.path),
+                      File(model.image.path),
                       fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => const Icon(
                         Icons.broken_image_outlined,
@@ -179,63 +169,11 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
               ),
             ),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        size: 18,
-                        color: AppColors.secondaryText,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Revise que la lesión se vea nítida y bien iluminada.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.secondaryText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: _isAnalyzing ? null : _analyze,
-                    icon: _isAnalyzing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: AppColors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const StethoscopeIcon(),
-                    label: Text(_isAnalyzing ? 'Analizando…' : 'Analizar'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _isAnalyzing
-                        ? null
-                        : () =>
-                              Navigator.of(context).pop(PreviewDecision.retake),
-                    icon: Icon(
-                      _fromCamera
-                          ? Icons.refresh_rounded
-                          : Icons.photo_library_outlined,
-                    ),
-                    label: Text(_retakeLabel),
-                  ),
-                ],
-              ),
-            ),
+          PreviewActions(
+            isAnalyzing: model.isAnalyzing,
+            fromCamera: model.fromCamera,
+            onAnalyze: _analyze,
+            onRetake: () => _leave(retake: true),
           ),
         ],
       ),

@@ -22,7 +22,6 @@ import 'package:integration_test/integration_test.dart';
 import 'parity_fixtures.g.dart';
 
 void main() {
-
   /// Colab confidence from which an image counts as "confident".
   const confidentThreshold = 0.90;
 
@@ -82,8 +81,9 @@ void main() {
         sameOutcome =
             !result.isConclusive && colabTopTwo.containsAll(appTopTwo);
       }
-      final allowed =
-      colabConfidence >= confidentThreshold ? tolerance : uncertainTolerance;
+      final allowed = colabConfidence >= confidentThreshold
+          ? tolerance
+          : uncertainTolerance;
       final ok = sameOutcome && difference < allowed;
       debugPrint(
         '${ok ? 'OK   ' : 'FALLA'} $name  esperado=$wanted  app=$got  '
@@ -95,8 +95,8 @@ void main() {
     debugPrint(
       'Paridad: ${cases.length - failures.length}/${cases.length} imágenes, '
       'diferencia máxima ${largestDifference.toStringAsFixed(6)} '
-          '(tolerancia $tolerance con confianza >= $confidentThreshold, '
-          '$uncertainTolerance con menos)',
+      '(tolerancia $tolerance con confianza >= $confidentThreshold, '
+      '$uncertainTolerance con menos)',
     );
     expect(failures, isEmpty, reason: 'Images without parity: $failures');
   });
