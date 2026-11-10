@@ -1,0 +1,30 @@
+{
+  "catalogVersion": "2026.1",
+  "sources": {
+    "http://id.nlm.nih.gov/mesh": "MeSH 2026, U.S. National Library of Medicine",
+    "http://purl.obolibrary.org/obo/NCBITaxon": "NCBI Taxonomy"
+  },
+  "classes": {
+    "dermatofitosis": [
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D014005", "display": "Tinea" },
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D002418", "display": "Cattle Diseases" },
+      { "system": "http://purl.obolibrary.org/obo/NCBITaxon", "code": "63417", "display": "Trichophyton verrucosum" }
+    ],
+    "papilomatosis": [
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D030361", "display": "Papillomavirus Infections" },
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D002418", "display": "Cattle Diseases" },
+      { "system": "http://purl.obolibrary.org/obo/NCBITaxon", "code": "10571", "display": "Bovine papillomavirus" }
+    ],
+    "sarna": [
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D008924", "display": "Mite Infestations" },
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D002418", "display": "Cattle Diseases" },
+      { "system": "http://purl.obolibrary.org/obo/NCBITaxon", "code": "420257", "display": "Chorioptes bovis" }
+    ],
+    "miasis": [
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D009198", "display": "Myiasis" },
+      { "system": "http://id.nlm.nih.gov/mesh", "code": "D002418", "display": "Cattle Diseases" },
+      { "system": "http://purl.obolibrary.org/obo/NCBITaxon", "code": "115425", "display": "Cochliomyia hominivorax" }
+    ],
+    "piel_sana": []
+  }
+}
