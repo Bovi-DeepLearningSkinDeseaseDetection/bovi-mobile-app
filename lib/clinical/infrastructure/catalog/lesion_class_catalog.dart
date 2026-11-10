@@ -1,10 +1,12 @@
+import 'clinical_code_catalog.dart';
+
 /// Texts shown to the farmer for each class of the model.
 ///
 /// The keys are the class names of `etiquetas.txt`. A class that is not listed
 /// here is still shown, using its label as the name.
 ///
-/// PENDING: the VeNom codes and the information sheets (HU07, HU09) are not
-/// here yet because they must be validated by a veterinarian first.
+/// The standard codes of each class (HU07) are in [ClinicalCodeCatalog].
+/// PENDING: the information sheets of HU09.
 class LesionClassCatalog {
   LesionClassCatalog._();
 

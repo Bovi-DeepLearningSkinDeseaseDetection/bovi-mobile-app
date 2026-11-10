@@ -42,7 +42,9 @@ class EvaluationEntity {
   /// Probability of every class of the model (RNF17).
   late List<ClassScoreEmbedded> probabilities;
 
-  String? venomCode;
+  /// Standard codes of the result (HU07) and edition of their catalog.
+  List<ClinicalCodeEmbedded>? clinicalCodes;
+  String? catalogVersion;
   late String modelVersion;
   late int inferenceMs;
 
@@ -60,6 +62,14 @@ class EvaluationEntity {
   @Enumerated(EnumType.name)
   late SyncStatus syncStatus;
   DateTime? syncedAt;
+}
+
+/// Code of a public terminology: MeSH or NCBI Taxonomy.
+@embedded
+class ClinicalCodeEmbedded {
+  String system = '';
+  String code = '';
+  String display = '';
 }
 
 /// Probability that the model assigned to one class.

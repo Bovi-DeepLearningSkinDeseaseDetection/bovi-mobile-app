@@ -29,82 +29,89 @@ const EvaluationEntitySchema = CollectionSchema(
       type: IsarType.string,
       enumMap: _EvaluationEntitybodyZoneEnumValueMap,
     ),
-    r'confidence': PropertySchema(
+    r'catalogVersion': PropertySchema(
       id: 3,
+      name: r'catalogVersion',
+      type: IsarType.string,
+    ),
+    r'clinicalCodes': PropertySchema(
+      id: 4,
+      name: r'clinicalCodes',
+      type: IsarType.objectList,
+
+      target: r'ClinicalCodeEmbedded',
+    ),
+    r'confidence': PropertySchema(
+      id: 5,
       name: r'confidence',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'imageFile': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'imageFile',
       type: IsarType.string,
     ),
     r'inferenceMs': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'inferenceMs',
       type: IsarType.long,
     ),
     r'modelVersion': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'modelVersion',
       type: IsarType.string,
     ),
     r'origin': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'origin',
       type: IsarType.string,
       enumMap: _EvaluationEntityoriginEnumValueMap,
     ),
     r'outcome': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'outcome',
       type: IsarType.string,
       enumMap: _EvaluationEntityoutcomeEnumValueMap,
     ),
     r'probabilities': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'probabilities',
       type: IsarType.objectList,
 
       target: r'ClassScoreEmbedded',
     ),
     r'syncStatus': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _EvaluationEntitysyncStatusEnumValueMap,
     ),
     r'syncedAt': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'syncedAt',
       type: IsarType.dateTime,
     ),
     r'thumbnailFile': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'thumbnailFile',
       type: IsarType.string,
     ),
     r'topLabel': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'topLabel',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
-    r'uuid': PropertySchema(id: 16, name: r'uuid', type: IsarType.string),
-    r'venomCode': PropertySchema(
-      id: 17,
-      name: r'venomCode',
-      type: IsarType.string,
-    ),
+    r'uuid': PropertySchema(id: 18, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _evaluationEntityEstimateSize,
@@ -206,7 +213,10 @@ const EvaluationEntitySchema = CollectionSchema(
     ),
   },
   links: {},
-  embeddedSchemas: {r'ClassScoreEmbedded': ClassScoreEmbeddedSchema},
+  embeddedSchemas: {
+    r'ClassScoreEmbedded': ClassScoreEmbeddedSchema,
+    r'ClinicalCodeEmbedded': ClinicalCodeEmbeddedSchema,
+  },
 
   getId: _evaluationEntityGetId,
   getLinks: _evaluationEntityGetLinks,
@@ -232,6 +242,29 @@ int _evaluationEntityEstimateSize(
       bytesCount += 3 + value.name.length * 3;
     }
   }
+  {
+    final value = object.catalogVersion;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final list = object.clinicalCodes;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[ClinicalCodeEmbedded]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += ClinicalCodeEmbeddedSchema.estimateSize(
+            value,
+            offsets,
+            allOffsets,
+          );
+        }
+      }
+    }
+  }
   bytesCount += 3 + object.imageFile.length * 3;
   bytesCount += 3 + object.modelVersion.length * 3;
   bytesCount += 3 + object.origin.name.length * 3;
@@ -252,12 +285,6 @@ int _evaluationEntityEstimateSize(
   bytesCount += 3 + object.thumbnailFile.length * 3;
   bytesCount += 3 + object.topLabel.length * 3;
   bytesCount += 3 + object.uuid.length * 3;
-  {
-    final value = object.venomCode;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   return bytesCount;
 }
 
@@ -270,26 +297,32 @@ void _evaluationEntitySerialize(
   writer.writeString(offsets[0], object.animalEarTag);
   writer.writeLong(offsets[1], object.animalId);
   writer.writeString(offsets[2], object.bodyZone?.name);
-  writer.writeDouble(offsets[3], object.confidence);
-  writer.writeDateTime(offsets[4], object.createdAt);
-  writer.writeString(offsets[5], object.imageFile);
-  writer.writeLong(offsets[6], object.inferenceMs);
-  writer.writeString(offsets[7], object.modelVersion);
-  writer.writeString(offsets[8], object.origin.name);
-  writer.writeString(offsets[9], object.outcome.name);
+  writer.writeString(offsets[3], object.catalogVersion);
+  writer.writeObjectList<ClinicalCodeEmbedded>(
+    offsets[4],
+    allOffsets,
+    ClinicalCodeEmbeddedSchema.serialize,
+    object.clinicalCodes,
+  );
+  writer.writeDouble(offsets[5], object.confidence);
+  writer.writeDateTime(offsets[6], object.createdAt);
+  writer.writeString(offsets[7], object.imageFile);
+  writer.writeLong(offsets[8], object.inferenceMs);
+  writer.writeString(offsets[9], object.modelVersion);
+  writer.writeString(offsets[10], object.origin.name);
+  writer.writeString(offsets[11], object.outcome.name);
   writer.writeObjectList<ClassScoreEmbedded>(
-    offsets[10],
+    offsets[12],
     allOffsets,
     ClassScoreEmbeddedSchema.serialize,
     object.probabilities,
   );
-  writer.writeString(offsets[11], object.syncStatus.name);
-  writer.writeDateTime(offsets[12], object.syncedAt);
-  writer.writeString(offsets[13], object.thumbnailFile);
-  writer.writeString(offsets[14], object.topLabel);
-  writer.writeDateTime(offsets[15], object.updatedAt);
-  writer.writeString(offsets[16], object.uuid);
-  writer.writeString(offsets[17], object.venomCode);
+  writer.writeString(offsets[13], object.syncStatus.name);
+  writer.writeDateTime(offsets[14], object.syncedAt);
+  writer.writeString(offsets[15], object.thumbnailFile);
+  writer.writeString(offsets[16], object.topLabel);
+  writer.writeDateTime(offsets[17], object.updatedAt);
+  writer.writeString(offsets[18], object.uuid);
 }
 
 EvaluationEntity _evaluationEntityDeserialize(
@@ -305,25 +338,32 @@ EvaluationEntity _evaluationEntityDeserialize(
       _EvaluationEntitybodyZoneValueEnumMap[reader.readStringOrNull(
         offsets[2],
       )];
-  object.confidence = reader.readDouble(offsets[3]);
-  object.createdAt = reader.readDateTime(offsets[4]);
+  object.catalogVersion = reader.readStringOrNull(offsets[3]);
+  object.clinicalCodes = reader.readObjectList<ClinicalCodeEmbedded>(
+    offsets[4],
+    ClinicalCodeEmbeddedSchema.deserialize,
+    allOffsets,
+    ClinicalCodeEmbedded(),
+  );
+  object.confidence = reader.readDouble(offsets[5]);
+  object.createdAt = reader.readDateTime(offsets[6]);
   object.id = id;
-  object.imageFile = reader.readString(offsets[5]);
-  object.inferenceMs = reader.readLong(offsets[6]);
-  object.modelVersion = reader.readString(offsets[7]);
+  object.imageFile = reader.readString(offsets[7]);
+  object.inferenceMs = reader.readLong(offsets[8]);
+  object.modelVersion = reader.readString(offsets[9]);
   object.origin =
       _EvaluationEntityoriginValueEnumMap[reader.readStringOrNull(
-        offsets[8],
+        offsets[10],
       )] ??
       ImageOrigin.camera;
   object.outcome =
       _EvaluationEntityoutcomeValueEnumMap[reader.readStringOrNull(
-        offsets[9],
+        offsets[11],
       )] ??
       EvaluationOutcome.healthy;
   object.probabilities =
       reader.readObjectList<ClassScoreEmbedded>(
-        offsets[10],
+        offsets[12],
         ClassScoreEmbeddedSchema.deserialize,
         allOffsets,
         ClassScoreEmbedded(),
@@ -331,15 +371,14 @@ EvaluationEntity _evaluationEntityDeserialize(
       [];
   object.syncStatus =
       _EvaluationEntitysyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[11],
+        offsets[13],
       )] ??
       SyncStatus.pending;
-  object.syncedAt = reader.readDateTimeOrNull(offsets[12]);
-  object.thumbnailFile = reader.readString(offsets[13]);
-  object.topLabel = reader.readString(offsets[14]);
-  object.updatedAt = reader.readDateTime(offsets[15]);
-  object.uuid = reader.readString(offsets[16]);
-  object.venomCode = reader.readStringOrNull(offsets[17]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[14]);
+  object.thumbnailFile = reader.readString(offsets[15]);
+  object.topLabel = reader.readString(offsets[16]);
+  object.updatedAt = reader.readDateTime(offsets[17]);
+  object.uuid = reader.readString(offsets[18]);
   return object;
 }
 
@@ -360,28 +399,38 @@ P _evaluationEntityDeserializeProp<P>(
           )])
           as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readObjectList<ClinicalCodeEmbedded>(
+            offset,
+            ClinicalCodeEmbeddedSchema.deserialize,
+            allOffsets,
+            ClinicalCodeEmbedded(),
+          ))
+          as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (_EvaluationEntityoriginValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               ImageOrigin.camera)
           as P;
-    case 9:
+    case 11:
       return (_EvaluationEntityoutcomeValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               EvaluationOutcome.healthy)
           as P;
-    case 10:
+    case 12:
       return (reader.readObjectList<ClassScoreEmbedded>(
                 offset,
                 ClassScoreEmbeddedSchema.deserialize,
@@ -390,24 +439,22 @@ P _evaluationEntityDeserializeProp<P>(
               ) ??
               [])
           as P;
-    case 11:
+    case 13:
       return (_EvaluationEntitysyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.pending)
           as P;
-    case 12:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 13:
-      return (reader.readString(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 15:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 16:
       return (reader.readString(offset)) as P;
     case 17:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1526,6 +1573,236 @@ extension EvaluationEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'bodyZone', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'catalogVersion'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'catalogVersion'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'catalogVersion',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'catalogVersion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'catalogVersion',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'catalogVersion', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  catalogVersionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'catalogVersion', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'clinicalCodes'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'clinicalCodes'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'clinicalCodes', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'clinicalCodes', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'clinicalCodes', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'clinicalCodes', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'clinicalCodes', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'clinicalCodes',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
       );
     });
   }
@@ -3078,169 +3355,17 @@ extension EvaluationEntityQueryFilter
       );
     });
   }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'venomCode'),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'venomCode'),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeEqualTo(String? value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'venomCode',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'venomCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'venomCode',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'venomCode', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
-  venomCodeIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'venomCode', value: ''),
-      );
-    });
-  }
 }
 
 extension EvaluationEntityQueryObject
     on QueryBuilder<EvaluationEntity, EvaluationEntity, QFilterCondition> {
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  clinicalCodesElement(FilterQuery<ClinicalCodeEmbedded> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'clinicalCodes');
+    });
+  }
+
   QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
   probabilitiesElement(FilterQuery<ClassScoreEmbedded> q) {
     return QueryBuilder.apply(this, (query) {
@@ -3293,6 +3418,20 @@ extension EvaluationEntityQuerySortBy
   sortByBodyZoneDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bodyZone', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortByCatalogVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'catalogVersion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortByCatalogVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'catalogVersion', Sort.desc);
     });
   }
 
@@ -3476,20 +3615,6 @@ extension EvaluationEntityQuerySortBy
       return query.addSortBy(r'uuid', Sort.desc);
     });
   }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
-  sortByVenomCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'venomCode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
-  sortByVenomCodeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'venomCode', Sort.desc);
-    });
-  }
 }
 
 extension EvaluationEntityQuerySortThenBy
@@ -3533,6 +3658,20 @@ extension EvaluationEntityQuerySortThenBy
   thenByBodyZoneDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bodyZone', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenByCatalogVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'catalogVersion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenByCatalogVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'catalogVersion', Sort.desc);
     });
   }
 
@@ -3729,20 +3868,6 @@ extension EvaluationEntityQuerySortThenBy
       return query.addSortBy(r'uuid', Sort.desc);
     });
   }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
-  thenByVenomCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'venomCode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
-  thenByVenomCodeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'venomCode', Sort.desc);
-    });
-  }
 }
 
 extension EvaluationEntityQueryWhereDistinct
@@ -3765,6 +3890,16 @@ extension EvaluationEntityQueryWhereDistinct
   distinctByBodyZone({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'bodyZone', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QDistinct>
+  distinctByCatalogVersion({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'catalogVersion',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -3863,13 +3998,6 @@ extension EvaluationEntityQueryWhereDistinct
       return query.addDistinctBy(r'uuid', caseSensitive: caseSensitive);
     });
   }
-
-  QueryBuilder<EvaluationEntity, EvaluationEntity, QDistinct>
-  distinctByVenomCode({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'venomCode', caseSensitive: caseSensitive);
-    });
-  }
 }
 
 extension EvaluationEntityQueryProperty
@@ -3897,6 +4025,20 @@ extension EvaluationEntityQueryProperty
   bodyZoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bodyZone');
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, String?, QQueryOperations>
+  catalogVersionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'catalogVersion');
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, List<ClinicalCodeEmbedded>?, QQueryOperations>
+  clinicalCodesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'clinicalCodes');
     });
   }
 
@@ -3993,18 +4135,642 @@ extension EvaluationEntityQueryProperty
       return query.addPropertyName(r'uuid');
     });
   }
-
-  QueryBuilder<EvaluationEntity, String?, QQueryOperations>
-  venomCodeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'venomCode');
-    });
-  }
 }
 
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
+
+const ClinicalCodeEmbeddedSchema = Schema(
+  name: r'ClinicalCodeEmbedded',
+  id: -9091304173231203690,
+  properties: {
+    r'code': PropertySchema(id: 0, name: r'code', type: IsarType.string),
+    r'display': PropertySchema(id: 1, name: r'display', type: IsarType.string),
+    r'system': PropertySchema(id: 2, name: r'system', type: IsarType.string),
+  },
+
+  estimateSize: _clinicalCodeEmbeddedEstimateSize,
+  serialize: _clinicalCodeEmbeddedSerialize,
+  deserialize: _clinicalCodeEmbeddedDeserialize,
+  deserializeProp: _clinicalCodeEmbeddedDeserializeProp,
+);
+
+int _clinicalCodeEmbeddedEstimateSize(
+  ClinicalCodeEmbedded object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.code.length * 3;
+  bytesCount += 3 + object.display.length * 3;
+  bytesCount += 3 + object.system.length * 3;
+  return bytesCount;
+}
+
+void _clinicalCodeEmbeddedSerialize(
+  ClinicalCodeEmbedded object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.code);
+  writer.writeString(offsets[1], object.display);
+  writer.writeString(offsets[2], object.system);
+}
+
+ClinicalCodeEmbedded _clinicalCodeEmbeddedDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = ClinicalCodeEmbedded();
+  object.code = reader.readString(offsets[0]);
+  object.display = reader.readString(offsets[1]);
+  object.system = reader.readString(offsets[2]);
+  return object;
+}
+
+P _clinicalCodeEmbeddedDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension ClinicalCodeEmbeddedQueryFilter
+    on
+        QueryBuilder<
+          ClinicalCodeEmbedded,
+          ClinicalCodeEmbedded,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'code',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'code',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'code', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  codeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'code', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'display',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'display',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'display',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'display', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  displayIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'display', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'system',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'system',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'system',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'system', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ClinicalCodeEmbedded,
+    ClinicalCodeEmbedded,
+    QAfterFilterCondition
+  >
+  systemIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'system', value: ''),
+      );
+    });
+  }
+}
+
+extension ClinicalCodeEmbeddedQueryObject
+    on
+        QueryBuilder<
+          ClinicalCodeEmbedded,
+          ClinicalCodeEmbedded,
+          QFilterCondition
+        > {}
 
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use

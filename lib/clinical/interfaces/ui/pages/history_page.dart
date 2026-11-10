@@ -65,6 +65,7 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
           result: evaluation.result,
           evaluatedAt: evaluation.createdAt,
+          codes: evaluation.clinicalCodes,
         ),
       ),
     );

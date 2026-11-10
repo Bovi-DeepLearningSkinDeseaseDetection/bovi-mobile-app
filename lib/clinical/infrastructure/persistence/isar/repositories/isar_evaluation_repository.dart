@@ -2,6 +2,7 @@ import 'package:isar_community/isar.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../../domain/model/aggregates/evaluation.dart';
+import '../../../../domain/model/value_objects/clinical_code.dart';
 import '../../../../domain/model/value_objects/inference_result.dart';
 import '../../../../domain/repositories/evaluation_repository.dart';
 import '../../../storage/evaluation_image_store.dart';
@@ -50,7 +51,14 @@ class IsarEvaluationRepository implements EvaluationRepository {
             ..label = item.label
             ..probability = item.probability,
       ]
-      ..venomCode = evaluation.venomCode
+      ..clinicalCodes = [
+        for (final code in evaluation.clinicalCodes)
+          ClinicalCodeEmbedded()
+            ..system = code.system
+            ..code = code.code
+            ..display = code.display,
+      ]
+      ..catalogVersion = evaluation.catalogVersion
       ..modelVersion = result.modelVersion
       ..inferenceMs = result.elapsed.inMilliseconds
       ..animalId = evaluation.animalId
@@ -75,7 +83,16 @@ class IsarEvaluationRepository implements EvaluationRepository {
         modelVersion: entity.modelVersion,
         elapsed: Duration(milliseconds: entity.inferenceMs),
       ),
-      venomCode: entity.venomCode,
+      clinicalCodes: [
+        for (final code
+            in entity.clinicalCodes ?? const <ClinicalCodeEmbedded>[])
+          ClinicalCode(
+            system: code.system,
+            code: code.code,
+            display: code.display,
+          ),
+      ],
+      catalogVersion: entity.catalogVersion,
       animalId: entity.animalId,
       animalEarTag: entity.animalEarTag,
       bodyZone: entity.bodyZone,
