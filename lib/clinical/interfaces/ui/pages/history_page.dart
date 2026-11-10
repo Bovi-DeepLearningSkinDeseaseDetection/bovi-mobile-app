@@ -7,6 +7,7 @@ import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../domain/model/aggregates/evaluation.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/repositories/evaluation_repository.dart';
+import '../../../infrastructure/catalog/disease_sheet_catalog.dart';
 import '../viewmodels/history_view_model.dart';
 import '../widgets/history/empty_history.dart';
 import '../widgets/history/evaluation_card.dart';
@@ -43,6 +44,7 @@ class HistoryPage extends StatelessWidget {
       child: _HistoryView(
         onScan: onScan,
         livestock: livestock ?? _registered<LivestockContextFacade>(),
+        sheets: _registered<DiseaseSheetCatalog>(),
       ),
     );
   }
@@ -51,8 +53,13 @@ class HistoryPage extends StatelessWidget {
 class _HistoryView extends StatelessWidget {
   final VoidCallback onScan;
   final LivestockContextFacade? livestock;
+  final DiseaseSheetCatalog? sheets;
 
-  const _HistoryView({required this.onScan, required this.livestock});
+  const _HistoryView({
+    required this.onScan,
+    required this.livestock,
+    required this.sheets,
+  });
 
   // HU11, scenario 3: the full image and every datum of the result.
   void _open(BuildContext context, Evaluation evaluation) {
@@ -68,6 +75,7 @@ class _HistoryView extends StatelessWidget {
           result: evaluation.result,
           evaluation: evaluation,
           codes: evaluation.clinicalCodes,
+          sheet: sheets?.sheetFor(evaluation.result),
         ),
       ),
     );

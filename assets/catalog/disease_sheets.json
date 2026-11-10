@@ -1,0 +1,98 @@
+{
+  "catalogVersion": "2026.1",
+  "sheets": {
+    "dermatofitosis": {
+      "summary": "Infección de la piel por hongos, conocida como tiña. Es frecuente en terneros y en animales que viven muy juntos, sobre todo en invierno.",
+      "signs": [
+        "Placas redondas sin pelo, con costras grises o blanquecinas.",
+        "Aparece sobre todo alrededor de los ojos, en la cabeza y en el cuello.",
+        "La picazón suele ser leve o no existir."
+      ],
+      "contagious": true,
+      "contagion": "Se contagia por contacto directo con otros animales y por objetos compartidos: cepillos, comederos, postes y cercas donde se rascan.",
+      "affectsPeople": true,
+      "peopleNote": "Puede pasar a las personas que tocan al animal. Use guantes y lávese las manos después de manipularlo.",
+      "prevention": [
+        "Separe al animal afectado del resto del establo.",
+        "Limpie y desinfecte cepillos, comederos, bebederos y postes.",
+        "No comparta utensilios entre el animal afectado y los sanos.",
+        "Evite el hacinamiento y mantenga el establo ventilado y con luz solar.",
+        "Revise a los demás animales, en especial a los terneros."
+      ],
+      "whenToCallVet": "Consulte a un médico veterinario para confirmar el caso y definir el tratamiento, sobre todo si las lesiones se extienden o aparecen en varios animales.",
+      "sources": [
+        { "title": "Merck Veterinary Manual: Dermatophytosis in Cattle", "url": "https://www.merckvetmanual.com/integumentary-system/dermatophytosis/dermatophytosis-in-cattle" },
+        { "title": "Merck Veterinary Manual: Global Zoonotic Diseases, Fungal Diseases", "url": "https://www.merckvetmanual.com/multimedia/table/global-zoonotic-diseases-fungal-diseases" }
+      ]
+    },
+    "papilomatosis": {
+      "summary": "Verrugas causadas por el papilomavirus bovino. Afecta sobre todo a animales jóvenes y muchas veces desaparecen solas con el tiempo.",
+      "signs": [
+        "Bultos de superficie rugosa, en forma de coliflor, de color gris o piel.",
+        "Aparecen sobre todo en la cabeza, el cuello, los hombros y los pezones.",
+        "Pueden ser una o muchas, de distinto tamaño."
+      ],
+      "contagious": true,
+      "contagion": "Se contagia entre bovinos por contacto directo y por objetos contaminados. El virus entra por heridas de la piel y resiste mucho tiempo en el ambiente.",
+      "affectsPeople": false,
+      "peopleNote": "No se considera transmisible a las personas.",
+      "prevention": [
+        "Separe a los animales con muchas verrugas de los jóvenes sanos.",
+        "Desinfecte agujas, aretadoras, cepillos y equipo de ordeño entre animales.",
+        "Revise cercas, comederos y corrales para evitar heridas por alambres o clavos.",
+        "Ordeñe al final a las vacas con verrugas en los pezones."
+      ],
+      "whenToCallVet": "Consulte a un médico veterinario si las verrugas sangran, crecen rápido, son muchas o dificultan el ordeño.",
+      "sources": [
+        { "title": "Merck Veterinary Manual: Diseases of Bovine Teats and Skin", "url": "https://www.merckvetmanual.com/reproductive-system/udder-diseases-in-cows/diseases-of-bovine-teats-and-skin" },
+        { "title": "Merck Veterinary Manual: Epidermal and Hair Follicle Tumors in Animals", "url": "https://www.merckvetmanual.com/integumentary-system/tumors-of-the-skin-and-soft-tissues/epidermal-and-hair-follicle-tumors-in-animals" }
+      ]
+    },
+    "sarna": {
+      "summary": "Infestación de la piel por ácaros. En el ganado lechero estabulado la forma más común es la corióptica, más frecuente al final del invierno.",
+      "signs": [
+        "Picazón: el animal se rasca contra postes, cercas o comederos.",
+        "Caída de pelo, costras y piel engrosada o escamosa.",
+        "Aparece sobre todo en la base de la cola, la ubre, las patas y el periné."
+      ],
+      "contagious": true,
+      "contagion": "Se contagia entre bovinos por contacto directo y por objetos o lugares compartidos donde se rascan.",
+      "affectsPeople": true,
+      "peopleNote": "Algunas formas, como la sarcóptica, pueden causar picazón pasajera en las personas. Use guantes al manipular al animal.",
+      "prevention": [
+        "Separe al animal afectado y revise a todo el establo.",
+        "Limpie y desinfecte postes, cepillos y lugares donde los animales se rascan.",
+        "Evite el hacinamiento y mantenga las camas limpias y secas.",
+        "Revise a los animales nuevos antes de juntarlos con el resto."
+      ],
+      "whenToCallVet": "Consulte a un médico veterinario: confirma el tipo de ácaro y suele indicar tratar a todo el establo al mismo tiempo.",
+      "sources": [
+        { "title": "Merck Veterinary Manual: Mange in Cattle", "url": "https://www.merckvetmanual.com/integumentary-system/mange/mange-in-cattle" }
+      ]
+    },
+    "miasis": {
+      "summary": "Larvas de mosca (gusanos) que se alimentan de una herida. En la región la causa principal es el gusano barrenador, que ataca heridas recientes.",
+      "signs": [
+        "Herida con larvas que se mueven en su interior.",
+        "Mal olor, secreción y herida que crece en lugar de cerrar.",
+        "Suele aparecer en heridas recientes, en el ombligo de los terneros, tras el parto, la castración o el descorne.",
+        "El animal está inquieto y se lame o se mira la herida."
+      ],
+      "contagious": false,
+      "contagion": "No se contagia por contacto entre animales, pero las moscas ponen huevos en cualquier herida abierta, por eso varios animales pueden infestarse al mismo tiempo.",
+      "affectsPeople": true,
+      "peopleNote": "Las moscas también pueden infestar heridas abiertas de las personas. Proteja y cubra sus propias heridas.",
+      "prevention": [
+        "Revise a diario las heridas de los animales y el ombligo de los terneros recién nacidos.",
+        "Limpie y cubra las heridas para que las moscas no se posen en ellas.",
+        "Evite castrar, descornar o marcar en épocas de muchas moscas.",
+        "Separe al animal afectado y revise al resto del establo."
+      ],
+      "whenToCallVet": "Llame de inmediato a un médico veterinario. El gusano barrenador es una enfermedad de notificación obligatoria: avise también a la autoridad sanitaria (SENASA).",
+      "sources": [
+        { "title": "Merck Veterinary Manual: New World Screwworm", "url": "https://www.merckvetmanual.com/integumentary-system/flies/new-world-screwworm" },
+        { "title": "WOAH: New World Screwworm", "url": "https://www.woah.org/en/disease/new-world-screwworm/" }
+      ]
+    }
+  }
+}

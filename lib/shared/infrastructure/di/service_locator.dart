@@ -4,6 +4,7 @@ import '../../../clinical/application/internal/commandservices/evaluation_comman
 import '../../../clinical/application/internal/outboundservices/external_livestock_service.dart';
 import '../../../clinical/domain/repositories/evaluation_repository.dart';
 import '../../../clinical/infrastructure/catalog/clinical_code_catalog.dart';
+import '../../../clinical/infrastructure/catalog/disease_sheet_catalog.dart';
 import '../../../clinical/infrastructure/persistence/isar/repositories/isar_evaluation_repository.dart';
 import '../../../clinical/infrastructure/storage/evaluation_image_store.dart';
 import '../../../livestock/application/internal/commandservices/animal_command_service.dart';
@@ -19,6 +20,7 @@ final locator = GetIt.instance;
 Future<void> setUpServices() async {
   final isar = await LocalDatabase.open();
   final codes = await ClinicalCodeCatalog.load();
+  final sheets = await DiseaseSheetCatalog.load();
 
   // Livestock (HU15).
   final animals = IsarAnimalRepository(isar);
@@ -32,6 +34,7 @@ Future<void> setUpServices() async {
   final evaluations = IsarEvaluationRepository(isar, images);
   locator
     ..registerSingleton(codes)
+    ..registerSingleton(sheets)
     ..registerSingleton(livestock)
     ..registerSingleton<EvaluationRepository>(evaluations)
     ..registerSingleton(

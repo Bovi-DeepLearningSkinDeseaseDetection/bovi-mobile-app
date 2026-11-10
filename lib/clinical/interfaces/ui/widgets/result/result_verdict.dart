@@ -11,7 +11,10 @@ import 'result_texts.dart';
 class ResultVerdict extends StatelessWidget {
   final InferenceResult result;
 
-  const ResultVerdict({super.key, required this.result});
+  /// Opens the information sheet of the disease (HU09); null hides it.
+  final VoidCallback? onMore;
+
+  const ResultVerdict({super.key, required this.result, this.onMore});
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +66,15 @@ class ResultVerdict extends StatelessWidget {
           Text(
             healthy ? ResultTexts.healthyAdvice : ResultTexts.lesionAdvice,
             style: bodyStyle,
+          ),
+        ],
+        if (onMore != null) ...[
+          const SizedBox(height: 4),
+          TextButton.icon(
+            onPressed: onMore,
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            icon: const Icon(Icons.menu_book_outlined),
+            label: const Text(ResultTexts.moreLabel),
           ),
         ],
       ],
