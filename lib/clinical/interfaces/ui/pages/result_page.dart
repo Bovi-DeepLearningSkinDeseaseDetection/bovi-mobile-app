@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../shared/interfaces/ui/widgets/status_badge.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
+import '../../../domain/model/value_objects/clinical_code.dart';
 import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../infrastructure/catalog/lesion_class_catalog.dart';
 
@@ -38,12 +39,16 @@ class ResultPage extends StatelessWidget {
   /// the history: with its date and without the scan action.
   final DateTime? evaluatedAt;
 
+  /// Standard codes of the result (HU07): MeSH and NCBI Taxonomy.
+  final List<ClinicalCode> codes;
+
   const ResultPage({
     super.key,
     required this.image,
     required this.result,
     this.saving,
     this.evaluatedAt,
+    this.codes = const [],
   });
 
   @override
@@ -81,6 +86,10 @@ class ResultPage extends StatelessWidget {
                     ],
                     const SizedBox(height: 20),
                     _Verdict(result: result),
+                    if (codes.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _ClinicalCodes(codes: codes),
+                    ],
                     const SizedBox(height: 20),
                     _Probabilities(classes: classes),
                     const SizedBox(height: 16),
@@ -338,6 +347,78 @@ class _ProbabilityRow extends StatelessWidget {
             value: item.probability.clamp(0.0, 1.0).toDouble(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Standard codes of the detected disease and its causal agent (HU07).
+class _ClinicalCodes extends StatelessWidget {
+  static const title = 'Codificación clínica';
+
+  final List<ClinicalCode> codes;
+
+  const _ClinicalCodes({required this.codes});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = TextTheme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: textTheme.titleSmall),
+            const SizedBox(height: 10),
+            for (final code in codes)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: ShapeDecoration(
+                        color: AppColors.mint,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        '${code.systemName} ${code.code}',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkGreen,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          code.display,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.bodyText,
+                            // Organisms are written in italics.
+                            fontStyle: code.isOrganism
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/captured_image.dart';
+import 'package:bov_mobile_app/clinical/domain/model/value_objects/clinical_code.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_result.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
 import 'package:bov_mobile_app/clinical/interfaces/ui/pages/result_page.dart';
@@ -60,5 +61,46 @@ void main() {
     expect(find.text('55 %'), findsOneWidget);
     expect(find.text('45 %'), findsOneWidget);
     expect(find.text(ResultPage.disclaimerText), findsOneWidget);
+  });
+
+  // HU07, scenario 1: the standard codes of the disease are shown.
+  testWidgets('a finding shows its MeSH and NCBI Taxonomy codes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ResultPage(
+          image: _image,
+          result: InferenceResult.fromScores(
+            labels: const ['dermatofitosis', 'piel_sana'],
+            scores: const [0.91, 0.09],
+            modelVersion: 'test',
+            elapsed: Duration.zero,
+          ),
+          codes: const [
+            ClinicalCode(
+              system: ClinicalCode.meshSystem,
+              code: 'D014005',
+              display: 'Tinea',
+            ),
+            ClinicalCode(
+              system: ClinicalCode.ncbiTaxonSystem,
+              code: '63417',
+              display: 'Trichophyton verrucosum',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('MeSH D014005'), findsOneWidget);
+    expect(find.text('Tinea'), findsOneWidget);
+    expect(find.text('NCBI Taxon 63417'), findsOneWidget);
+    expect(find.text('Trichophyton verrucosum'), findsOneWidget);
+  });
+
+  testWidgets('a result without codes shows no coding section', (tester) async {
+    await _show(tester, [0.1, 0.9]);
+    expect(find.text('Codificación clínica'), findsNothing);
   });
 }

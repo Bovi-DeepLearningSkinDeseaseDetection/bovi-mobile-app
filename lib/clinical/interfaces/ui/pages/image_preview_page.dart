@@ -8,6 +8,7 @@ import '../../../../shared/interfaces/ui/widgets/stethoscope_icon.dart';
 import '../../../application/internal/commandservices/detection_pipeline_service.dart';
 import '../../../application/internal/commandservices/evaluation_command_service.dart';
 import '../../../domain/model/value_objects/captured_image.dart';
+import '../../../infrastructure/catalog/clinical_code_catalog.dart';
 import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/model/value_objects/model_input.dart';
 import '../../../domain/model/value_objects/origin_image.dart';
@@ -102,8 +103,14 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
       final saving = _save(result);
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
-          builder: (_) =>
-              ResultPage(image: widget.image, result: result, saving: saving),
+          builder: (_) => ResultPage(
+            image: widget.image,
+            result: result,
+            saving: saving,
+            codes: locator.isRegistered<ClinicalCodeCatalog>()
+                ? locator<ClinicalCodeCatalog>().codesFor(result)
+                : const [],
+          ),
         ),
       );
       // The camera deletes its temporary photo after this page closes, so

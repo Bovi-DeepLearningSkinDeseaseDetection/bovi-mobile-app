@@ -81,6 +81,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/catalog/
     - assets/icon/
     - assets/images/
     - tensor-flow-package/
