@@ -88,7 +88,7 @@ class DeepLearningInferenceEngine implements SkinLesionClassifier {
     if (outputShape.length != 2 || outputShape[1] != labels.length) {
       throw StateError(
         'The model returns $outputShape but etiquetas.txt has '
-            '${labels.length} classes.',
+        '${labels.length} classes.',
       );
     }
 
@@ -114,9 +114,9 @@ class _LoadedModel {
   final String version;
 
   const _LoadedModel(
-      this.interpreter,
-      this.background,
-      this.labels,
-      this.version,
-      );
+    this.interpreter,
+    this.background,
+    this.labels,
+    this.version,
+  );
 }

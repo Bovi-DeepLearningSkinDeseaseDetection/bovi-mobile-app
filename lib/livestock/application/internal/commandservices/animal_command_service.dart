@@ -5,12 +5,16 @@ import '../../../domain/model/aggregates/animal.dart';
 import '../../../domain/model/valueobjects/animal_sex.dart';
 import '../../../domain/model/valueobjects/ear_tag.dart';
 import '../../../domain/repositories/animal_repository.dart';
+import '../outboundservices/external_iam_service.dart';
 
 /// Registers the animals of the farm (HU15).
 class AnimalCommandService {
   final AnimalRepository _repository;
 
-  const AnimalCommandService(this._repository);
+  /// Who is signed in; the animal belongs to them (HU12, HU14).
+  final ExternalIamService? _iam;
+
+  const AnimalCommandService(this._repository, [this._iam]);
 
   /// Saves a new animal. Throws [DuplicateEarTagException] with the
   /// registered animal when the ear tag already exists (scenario 4), and
@@ -30,6 +34,7 @@ class AnimalCommandService {
         breed: breed.trim(),
         sex: sex,
         createdAt: DateTime.now(),
+        ownerId: await _iam?.currentFarmerId(),
       ),
     );
   }

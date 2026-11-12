@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../../livestock/interfaces/acl/livestock_context_facade.dart';
 import '../../../../../livestock/interfaces/ui/widgets/animal_picker_sheet.dart';
+import '../../../../../shared/domain/model/sync_status.dart';
 import '../../../../../shared/infrastructure/di/service_locator.dart';
 import '../../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../../shared/interfaces/ui/widgets/icon_bubble.dart';
 import '../../../../application/internal/commandservices/evaluation_command_service.dart';
+import '../../../../domain/exceptions/evaluation_already_synced_exception.dart';
 import '../../../../domain/model/aggregates/evaluation.dart';
 import 'body_zone_picker.dart';
 
@@ -14,6 +16,8 @@ import 'body_zone_picker.dart';
 class EvaluationAnimalSection extends StatefulWidget {
   static const title = 'Animal evaluado';
   static const assignLabel = 'Asignar animal';
+  static const lockedText =
+      'Respaldada en la nube: el animal y la zona ya no se pueden cambiar.';
 
   /// The saved evaluation; null while it is still being saved.
   final Evaluation? evaluation;
@@ -81,6 +85,15 @@ class _EvaluationAnimalSectionState extends State<EvaluationAnimalSection> {
         _evaluation = updated;
         _animal = Future.value(animal);
       });
+    } on EvaluationAlreadySyncedException {
+      // It was synced in the background while this screen was open.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(EvaluationAlreadySyncedException.message),
+          ),
+        );
+      }
     } catch (error) {
       debugPrint('Assigning the animal failed: $error');
       if (mounted) {
@@ -98,6 +111,7 @@ class _EvaluationAnimalSectionState extends State<EvaluationAnimalSection> {
     final evaluation = _evaluation;
     final textTheme = TextTheme.of(context);
     final assigned = evaluation?.animalId != null;
+    final locked = evaluation?.syncStatus == SyncStatus.synced;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -125,7 +139,10 @@ class _EvaluationAnimalSectionState extends State<EvaluationAnimalSection> {
                         )
                       else
                         Text(
-                          'Opcional: indique a qué animal pertenece la foto.',
+                          locked
+                              ? 'Sin animal asignado.'
+                              : 'Opcional: indique a qué animal pertenece '
+                                    'la foto.',
                           style: textTheme.bodySmall,
                         ),
                     ],
@@ -134,20 +151,26 @@ class _EvaluationAnimalSectionState extends State<EvaluationAnimalSection> {
               ],
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: evaluation == null || _isSaving ? null : _assign,
-              icon: _isSaving
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(assigned ? Icons.edit_outlined : Icons.add_rounded),
-              label: Text(
-                assigned
-                    ? 'Cambiar animal'
-                    : EvaluationAnimalSection.assignLabel,
+            if (locked)
+              Text(
+                EvaluationAnimalSection.lockedText,
+                style: textTheme.bodySmall,
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: evaluation == null || _isSaving ? null : _assign,
+                icon: _isSaving
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(assigned ? Icons.edit_outlined : Icons.add_rounded),
+                label: Text(
+                  assigned
+                      ? 'Cambiar animal'
+                      : EvaluationAnimalSection.assignLabel,
+                ),
               ),
-            ),
           ],
         ),
       ),

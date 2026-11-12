@@ -53,6 +53,7 @@ dependencies:
   isar_community: ^3.4.1
   isar_community_flutter_libs: ^3.4.1
   uuid: ^4.6.0
+  workmanager: ^0.10.10
 
 dev_dependencies:
   flutter_test:

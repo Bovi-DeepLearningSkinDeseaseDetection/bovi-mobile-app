@@ -6,7 +6,6 @@ import '../../../../domain/model/valueobjects/animal_sex.dart';
 part 'animal_entity.g.dart';
 
 /// Isar collection `animals`: animals of the farm (HU15).
-///
 @Collection(accessor: 'animals')
 @Name('animals')
 class AnimalEntity {
@@ -35,4 +34,12 @@ class AnimalEntity {
 
   @Enumerated(EnumType.name)
   late SyncStatus syncStatus;
+  DateTime? syncedAt;
+
+  /// Cloud account of the farmer (HU14); null before the accounts existed.
+  @Index()
+  String? ownerId;
+
+  /// Why the backend rejected it (HU12).
+  String? syncError;
 }
