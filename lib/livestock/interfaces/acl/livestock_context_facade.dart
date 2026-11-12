@@ -1,5 +1,6 @@
 import '../../../shared/domain/model/sync_status.dart';
 import '../../application/internal/commandservices/animal_command_service.dart';
+import '../../application/internal/commandservices/animal_restore_service.dart';
 import '../../application/internal/commandservices/animal_sync_service.dart';
 import '../../application/internal/queryservices/animal_query_service.dart';
 import '../../domain/exceptions/duplicate_ear_tag_exception.dart';
@@ -44,8 +45,27 @@ class LivestockContextFacade {
   final AnimalCommandService _commands;
   final AnimalQueryService _queries;
   final AnimalSyncService? _sync;
+  final AnimalRestoreService? _restore;
 
-  const LivestockContextFacade(this._commands, this._queries, [this._sync]);
+  const LivestockContextFacade(
+    this._commands,
+    this._queries, [
+    this._sync,
+    this._restore,
+  ]);
+
+  /// Brings the farmer's animals back from the cloud (HU13), by cloud uuid.
+  Future<Map<String, AnimalSummary>> restoreAnimals({
+    required String ownerId,
+    required String token,
+  }) async {
+    final restored =
+        await _restore?.restoreAll(ownerId: ownerId, token: token) ?? const {};
+    return {
+      for (final entry in restored.entries)
+        entry.key: AnimalSummary.of(entry.value),
+    };
+  }
 
   /// Backs up the pending animals of the farmer (HU12). Returns how many
   /// were synced; network and session errors reach the caller.

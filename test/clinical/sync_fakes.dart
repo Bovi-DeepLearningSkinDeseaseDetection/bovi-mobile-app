@@ -4,6 +4,9 @@ import 'package:bov_mobile_app/clinical/domain/model/aggregates/evaluation.dart'
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/body_zone.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/inference_result.dart';
 import 'package:bov_mobile_app/clinical/domain/model/value_objects/origin_image.dart';
+import 'package:bov_mobile_app/clinical/domain/model/queries/evaluation_filter.dart';
+import 'package:bov_mobile_app/clinical/domain/repositories/evaluation_repository.dart';
+import 'package:bov_mobile_app/clinical/domain/repositories/evaluation_restore_repository.dart';
 import 'package:bov_mobile_app/clinical/domain/repositories/evaluation_sync_repository.dart';
 import 'package:bov_mobile_app/clinical/domain/services/evaluation_sync_gateway.dart';
 import 'package:bov_mobile_app/iam/application/internal/commandservices/auth_command_service.dart';
@@ -64,7 +67,11 @@ Evaluation evaluation(
 );
 
 /// The evaluations of the phone, with the same filters as the Isar one.
-class MemoryEvaluations implements EvaluationSyncRepository {
+class MemoryEvaluations
+    implements
+        EvaluationRepository,
+        EvaluationSyncRepository,
+        EvaluationRestoreRepository {
   final items = <String, Evaluation>{};
   final changedAt = <String, DateTime>{};
 
@@ -105,6 +112,32 @@ class MemoryEvaluations implements EvaluationSyncRepository {
 
   @override
   Stream<int> watchPendingCount() => const Stream.empty();
+
+  @override
+  Future<Evaluation> save(Evaluation evaluation) async {
+    add(evaluation, changed: now);
+    return evaluation;
+  }
+
+  @override
+  Stream<List<Evaluation>> watch([
+    EvaluationFilter filter = EvaluationFilter.none,
+  ]) => Stream.value(items.values.toList());
+
+  @override
+  Future<Evaluation> assignAnimal(
+    int evaluationId, {
+    required int animalId,
+    required String animalEarTag,
+    required BodyZone bodyZone,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<bool> exists(String uuid) async => items.containsKey(uuid);
+
+  @override
+  Future<int> countOwnedBy(String ownerId) async =>
+      items.values.where((e) => e.ownerId == ownerId).length;
 
   static Evaluation _copy(
     Evaluation e,
@@ -184,6 +217,26 @@ class MemoryAnimals implements AnimalRepository, AnimalSyncRepository {
   @override
   Future<void> markFailed(String uuid, String ownerId, String reason) async =>
       _update(uuid, SyncStatus.failed, ownerId, null, reason);
+
+  @override
+  Future<Animal> restore(Animal cloud, String ownerId) async {
+    final byUuid = items.values.where((a) => a.uuid == cloud.uuid).firstOrNull;
+    if (byUuid != null) return byUuid;
+    final sameTag = items.values
+        .where((a) => a.earTag == cloud.earTag)
+        .firstOrNull;
+    final id = sameTag?.id ?? items.length + 1;
+    return items[id] = Animal(
+      id: id,
+      uuid: cloud.uuid,
+      earTag: cloud.earTag,
+      breed: cloud.breed,
+      sex: cloud.sex,
+      createdAt: cloud.createdAt,
+      syncStatus: SyncStatus.synced,
+      ownerId: ownerId,
+    );
+  }
 
   void _update(
     String uuid,

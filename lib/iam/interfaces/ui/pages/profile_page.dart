@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../clinical/interfaces/ui/pages/restore_history_page.dart';
 import '../../../../clinical/interfaces/ui/widgets/help_frame.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../shared/interfaces/ui/widgets/bovi_logo.dart';
@@ -128,6 +129,20 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           if (farmer != null) ...[
+            const SizedBox(height: 16),
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: _ProfileTile(
+                icon: Icons.cloud_download_outlined,
+                title: RestoreHistoryPage.title,
+                subtitle: 'Recuperar sus evaluaciones de la nube',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<bool>(
+                    builder: (_) => const RestoreHistoryPage(),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             Card(
               clipBehavior: Clip.antiAlias,
