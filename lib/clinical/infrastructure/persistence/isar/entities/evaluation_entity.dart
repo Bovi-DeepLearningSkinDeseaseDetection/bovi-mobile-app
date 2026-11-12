@@ -62,6 +62,13 @@ class EvaluationEntity {
   @Enumerated(EnumType.name)
   late SyncStatus syncStatus;
   DateTime? syncedAt;
+
+  /// Cloud account of the farmer (HU14); null before the accounts existed.
+  @Index()
+  String? ownerId;
+
+  /// Why the backend rejected it (HU12).
+  String? syncError;
 }
 
 /// Code of a public terminology: MeSH or NCBI Taxonomy.

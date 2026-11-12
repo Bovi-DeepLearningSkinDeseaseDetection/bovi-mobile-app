@@ -16,6 +16,14 @@ class Animal {
   final DateTime? lastEvaluatedAt;
   final SyncStatus syncStatus;
 
+  /// Cloud account of the farmer who created it (HU12, HU14). Null for the
+  /// records saved before the accounts existed: the first account that syncs
+  /// takes them.
+  final String? ownerId;
+
+  /// Why the backend rejected it, when [syncStatus] is failed.
+  final String? syncError;
+
   const Animal({
     this.id,
     required this.uuid,
@@ -25,5 +33,7 @@ class Animal {
     required this.createdAt,
     this.lastEvaluatedAt,
     this.syncStatus = SyncStatus.pending,
+    this.ownerId,
+    this.syncError,
   });
 }

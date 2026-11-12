@@ -29,24 +29,35 @@ const AnimalEntitySchema = CollectionSchema(
       name: r'lastEvaluatedAt',
       type: IsarType.dateTime,
     ),
+    r'ownerId': PropertySchema(id: 4, name: r'ownerId', type: IsarType.string),
     r'sex': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'sex',
       type: IsarType.string,
       enumMap: _AnimalEntitysexEnumValueMap,
     ),
+    r'syncError': PropertySchema(
+      id: 6,
+      name: r'syncError',
+      type: IsarType.string,
+    ),
     r'syncStatus': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _AnimalEntitysyncStatusEnumValueMap,
     ),
+    r'syncedAt': PropertySchema(
+      id: 8,
+      name: r'syncedAt',
+      type: IsarType.dateTime,
+    ),
     r'updatedAt': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
-    r'uuid': PropertySchema(id: 7, name: r'uuid', type: IsarType.string),
+    r'uuid': PropertySchema(id: 10, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _animalEntityEstimateSize,
@@ -94,6 +105,19 @@ const AnimalEntitySchema = CollectionSchema(
         ),
       ],
     ),
+    r'ownerId': IndexSchema(
+      id: -7594796109721319539,
+      name: r'ownerId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'ownerId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -112,7 +136,19 @@ int _animalEntityEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.breed.length * 3;
   bytesCount += 3 + object.earTag.length * 3;
+  {
+    final value = object.ownerId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.sex.name.length * 3;
+  {
+    final value = object.syncError;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.syncStatus.name.length * 3;
   bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
@@ -128,10 +164,13 @@ void _animalEntitySerialize(
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeString(offsets[2], object.earTag);
   writer.writeDateTime(offsets[3], object.lastEvaluatedAt);
-  writer.writeString(offsets[4], object.sex.name);
-  writer.writeString(offsets[5], object.syncStatus.name);
-  writer.writeDateTime(offsets[6], object.updatedAt);
-  writer.writeString(offsets[7], object.uuid);
+  writer.writeString(offsets[4], object.ownerId);
+  writer.writeString(offsets[5], object.sex.name);
+  writer.writeString(offsets[6], object.syncError);
+  writer.writeString(offsets[7], object.syncStatus.name);
+  writer.writeDateTime(offsets[8], object.syncedAt);
+  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeString(offsets[10], object.uuid);
 }
 
 AnimalEntity _animalEntityDeserialize(
@@ -146,16 +185,19 @@ AnimalEntity _animalEntityDeserialize(
   object.earTag = reader.readString(offsets[2]);
   object.id = id;
   object.lastEvaluatedAt = reader.readDateTimeOrNull(offsets[3]);
+  object.ownerId = reader.readStringOrNull(offsets[4]);
   object.sex =
-      _AnimalEntitysexValueEnumMap[reader.readStringOrNull(offsets[4])] ??
+      _AnimalEntitysexValueEnumMap[reader.readStringOrNull(offsets[5])] ??
       AnimalSex.female;
+  object.syncError = reader.readStringOrNull(offsets[6]);
   object.syncStatus =
       _AnimalEntitysyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[5],
+        offsets[7],
       )] ??
       SyncStatus.pending;
-  object.updatedAt = reader.readDateTime(offsets[6]);
-  object.uuid = reader.readString(offsets[7]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[8]);
+  object.updatedAt = reader.readDateTime(offsets[9]);
+  object.uuid = reader.readString(offsets[10]);
   return object;
 }
 
@@ -175,18 +217,24 @@ P _animalEntityDeserializeProp<P>(
     case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
       return (_AnimalEntitysexValueEnumMap[reader.readStringOrNull(offset)] ??
               AnimalSex.female)
           as P;
-    case 5:
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
       return (_AnimalEntitysyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.pending)
           as P;
-    case 6:
+    case 8:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 9:
       return (reader.readDateTime(offset)) as P;
-    case 7:
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -660,6 +708,82 @@ extension AnimalEntityQueryWhere
           includeUpper: includeUpper,
         ),
       );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause> ownerIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'ownerId', value: [null]),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause>
+  ownerIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'ownerId',
+          lower: [null],
+          includeLower: false,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause> ownerIdEqualTo(
+    String? ownerId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'ownerId', value: [ownerId]),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterWhereClause> ownerIdNotEqualTo(
+    String? ownerId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [],
+                upper: [ownerId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [ownerId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [ownerId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [],
+                upper: [ownerId],
+                includeUpper: false,
+              ),
+            );
+      }
     });
   }
 }
@@ -1144,6 +1268,165 @@ extension AnimalEntityQueryFilter
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'ownerId'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'ownerId'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'ownerId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'ownerId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'ownerId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  ownerIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'ownerId', value: ''),
+      );
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition> sexEqualTo(
     AnimalSex value, {
     bool caseSensitive = true,
@@ -1293,6 +1576,165 @@ extension AnimalEntityQueryFilter
   }
 
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'syncError'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'syncError'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'syncError',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'syncError',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'syncError', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncErrorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'syncError', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
   syncStatusEqualTo(SyncStatus value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1429,6 +1871,79 @@ extension AnimalEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'syncStatus', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'syncedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'syncedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'syncedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'syncedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'syncedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterFilterCondition>
+  syncedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'syncedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
@@ -1694,6 +2209,18 @@ extension AnimalEntityQuerySortBy
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortByOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortByOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.asc);
@@ -1703,6 +2230,18 @@ extension AnimalEntityQuerySortBy
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
     });
   }
 
@@ -1716,6 +2255,18 @@ extension AnimalEntityQuerySortBy
   sortBySyncStatusDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'syncStatus', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySyncedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> sortBySyncedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedAt', Sort.desc);
     });
   }
 
@@ -1808,6 +2359,18 @@ extension AnimalEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenByOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenByOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.asc);
@@ -1817,6 +2380,18 @@ extension AnimalEntityQuerySortThenBy
   QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sex', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
     });
   }
 
@@ -1830,6 +2405,18 @@ extension AnimalEntityQuerySortThenBy
   thenBySyncStatusDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'syncStatus', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySyncedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QAfterSortBy> thenBySyncedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedAt', Sort.desc);
     });
   }
 
@@ -1889,6 +2476,14 @@ extension AnimalEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctByOwnerId({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'ownerId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctBySex({
     bool caseSensitive = true,
   }) {
@@ -1897,11 +2492,25 @@ extension AnimalEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctBySyncError({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncError', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctBySyncStatus({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'syncStatus', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<AnimalEntity, AnimalEntity, QDistinct> distinctBySyncedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncedAt');
     });
   }
 
@@ -1953,9 +2562,21 @@ extension AnimalEntityQueryProperty
     });
   }
 
+  QueryBuilder<AnimalEntity, String?, QQueryOperations> ownerIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'ownerId');
+    });
+  }
+
   QueryBuilder<AnimalEntity, AnimalSex, QQueryOperations> sexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'sex');
+    });
+  }
+
+  QueryBuilder<AnimalEntity, String?, QQueryOperations> syncErrorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncError');
     });
   }
 
@@ -1963,6 +2584,12 @@ extension AnimalEntityQueryProperty
   syncStatusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'syncStatus');
+    });
+  }
+
+  QueryBuilder<AnimalEntity, DateTime?, QQueryOperations> syncedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncedAt');
     });
   }
 

@@ -47,7 +47,7 @@ class InferenceResult {
     if (labels.length != scores.length) {
       throw ArgumentError(
         'The model returned ${scores.length} scores '
-            'but there are ${labels.length} labels.',
+        'but there are ${labels.length} labels.',
       );
     }
     return InferenceResult(
@@ -62,7 +62,8 @@ class InferenceResult {
 
   /// Classes from the most to the least probable.
   List<ClassProbability> get ranked =>
-      [...probabilities]..sort((a, b) => b.probability.compareTo(a.probability));
+      [...probabilities]
+        ..sort((a, b) => b.probability.compareTo(a.probability));
 
   /// Most probable class.
   ClassProbability get top => ranked.first;

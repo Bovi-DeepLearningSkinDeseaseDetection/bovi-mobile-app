@@ -1,4 +1,6 @@
+import '../../../shared/domain/model/sync_status.dart';
 import '../../application/internal/commandservices/animal_command_service.dart';
+import '../../application/internal/commandservices/animal_sync_service.dart';
 import '../../application/internal/queryservices/animal_query_service.dart';
 import '../../domain/exceptions/duplicate_ear_tag_exception.dart';
 import '../../domain/model/aggregates/animal.dart';
@@ -41,8 +43,23 @@ class DuplicateAnimalException implements Exception {
 class LivestockContextFacade {
   final AnimalCommandService _commands;
   final AnimalQueryService _queries;
+  final AnimalSyncService? _sync;
 
-  const LivestockContextFacade(this._commands, this._queries);
+  const LivestockContextFacade(this._commands, this._queries, [this._sync]);
+
+  /// Backs up the pending animals of the farmer (HU12). Returns how many
+  /// were synced; network and session errors reach the caller.
+  Future<int> syncPendingAnimals({
+    required String ownerId,
+    required String token,
+  }) async => await _sync?.syncPending(ownerId: ownerId, token: token) ?? 0;
+
+  /// Cloud id of the animal, or null while it is not in the cloud yet: an
+  /// evaluation that points to it has to wait.
+  Future<String?> syncedAnimalUuid(int id) async {
+    final animal = await _queries.findById(id);
+    return animal?.syncStatus == SyncStatus.synced ? animal!.uuid : null;
+  }
 
   Future<List<AnimalSummary>> searchAnimals(String earTag) async =>
       (await _queries.search(earTag)).map(AnimalSummary.of).toList();

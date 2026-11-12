@@ -51,6 +51,33 @@ class ApiFailure {
   }
 }
 
+/// The backend refused a request with its `{code, message}` error.
+class ApiException implements Exception {
+  final ApiFailure failure;
+
+  const ApiException(this.failure);
+
+  int get statusCode => failure.statusCode;
+  String get code => failure.code;
+  String get message => failure.message;
+
+  /// The token is no longer accepted: the farmer must sign in again.
+  bool get isUnauthorized => statusCode == 401;
+
+  @override
+  String toString() => 'ApiException($statusCode ${failure.code})';
+}
+
+/// Runs a request to the backend translating its errors: [ApiException]
+/// with the message of the backend, or NetworkUnavailableException.
+Future<T> callApi<T>(Future<T> Function() request) async {
+  try {
+    return await request();
+  } on DioException catch (error) {
+    throw ApiException(ApiFailure.of(error));
+  }
+}
+
 /// HTTP client of the backend: JSON over HTTPS (RNF5).
 Dio createApiClient({String? baseUrl}) => Dio(
   BaseOptions(

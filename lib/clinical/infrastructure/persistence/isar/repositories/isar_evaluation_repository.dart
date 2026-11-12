@@ -1,6 +1,7 @@
 import 'package:isar_community/isar.dart';
 import 'package:path/path.dart' as p;
 
+import '../../../../domain/exceptions/evaluation_already_synced_exception.dart';
 import '../../../../domain/model/aggregates/evaluation.dart';
 import '../../../../domain/model/queries/evaluation_filter.dart';
 import '../../../../domain/model/value_objects/body_zone.dart';
@@ -8,11 +9,14 @@ import '../../../../domain/model/value_objects/clinical_code.dart';
 import '../../../../domain/model/value_objects/evaluation_outcome.dart';
 import '../../../../domain/model/value_objects/inference_result.dart';
 import '../../../../domain/repositories/evaluation_repository.dart';
+import '../../../../domain/repositories/evaluation_sync_repository.dart';
+import '../../../../../shared/domain/model/sync_status.dart';
 import '../../../storage/evaluation_image_store.dart';
 import '../entities/evaluation_entity.dart';
 
 /// Stores the evaluations in the `evaluations` Isar collection.
-class IsarEvaluationRepository implements EvaluationRepository {
+class IsarEvaluationRepository
+    implements EvaluationRepository, EvaluationSyncRepository {
   final Isar _isar;
   final EvaluationImageStore _images;
 
@@ -68,6 +72,10 @@ class IsarEvaluationRepository implements EvaluationRepository {
     if (entity == null) {
       throw StateError('Evaluation $evaluationId does not exist.');
     }
+    // The cloud copy is immutable: it would no longer match.
+    if (entity.syncStatus == SyncStatus.synced) {
+      throw const EvaluationAlreadySyncedException();
+    }
     entity
       ..animalId = animalId
       ..animalEarTag = animalEarTag
@@ -110,7 +118,9 @@ class IsarEvaluationRepository implements EvaluationRepository {
       ..animalId = evaluation.animalId
       ..animalEarTag = evaluation.animalEarTag
       ..bodyZone = evaluation.bodyZone
-      ..syncStatus = evaluation.syncStatus;
+      ..syncStatus = evaluation.syncStatus
+      ..ownerId = evaluation.ownerId
+      ..syncError = evaluation.syncError;
   }
 
   Future<Evaluation> _toDomain(EvaluationEntity entity) async {
@@ -143,8 +153,74 @@ class IsarEvaluationRepository implements EvaluationRepository {
       animalEarTag: entity.animalEarTag,
       bodyZone: entity.bodyZone,
       syncStatus: entity.syncStatus,
+      ownerId: entity.ownerId,
+      syncError: entity.syncError,
     );
   }
+
+  @override
+  Future<List<Evaluation>> pendingSync(
+    String ownerId, {
+    required DateTime changedBefore,
+  }) async {
+    final entities = await _isar.evaluations
+        .filter()
+        .syncStatusEqualTo(SyncStatus.pending)
+        .and()
+        .updatedAtLessThan(changedBefore)
+        .and()
+        .group((q) => q.ownerIdEqualTo(ownerId).or().ownerIdIsNull())
+        .sortByCreatedAt()
+        .findAll();
+    return Future.wait(entities.map(_toDomain));
+  }
+
+  @override
+  Future<void> markSynced(
+    Iterable<String> uuids,
+    String ownerId,
+    DateTime at,
+  ) => _update(uuids, (entity) {
+    entity
+      ..syncStatus = SyncStatus.synced
+      ..syncedAt = at
+      ..ownerId = ownerId
+      ..syncError = null;
+  });
+
+  @override
+  Future<void> markFailed(String uuid, String ownerId, String reason) =>
+      _update([uuid], (entity) {
+        entity
+          ..syncStatus = SyncStatus.failed
+          ..ownerId = ownerId
+          ..syncError = reason;
+      });
+
+  @override
+  Stream<int> watchPendingCount() => _isar.evaluations
+      .filter()
+      .syncStatusEqualTo(SyncStatus.pending)
+      .watchLazy(fireImmediately: true)
+      .asyncMap(
+        (_) => _isar.evaluations
+            .filter()
+            .syncStatusEqualTo(SyncStatus.pending)
+            .count(),
+      );
+
+  Future<void> _update(
+    Iterable<String> uuids,
+    void Function(EvaluationEntity entity) change,
+  ) => _isar.writeTxn(() async {
+    for (final uuid in uuids) {
+      final entity = await _isar.evaluations.getByUuid(uuid);
+      if (entity == null) continue;
+      change(entity);
+      entity.updatedAt = DateTime.now();
+      await _isar.evaluations.put(entity);
+    }
+  });
 }
 
 typedef _Condition =

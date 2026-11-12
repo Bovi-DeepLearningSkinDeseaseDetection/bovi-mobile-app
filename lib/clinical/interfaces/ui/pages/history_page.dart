@@ -9,6 +9,7 @@ import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/repositories/evaluation_repository.dart';
 import '../../../infrastructure/catalog/disease_sheet_catalog.dart';
 import '../viewmodels/history_view_model.dart';
+import '../widgets/history/sync_banner.dart';
 import '../widgets/history/empty_history.dart';
 import '../widgets/history/evaluation_card.dart';
 import '../widgets/history/history_filter_sheet.dart';
@@ -130,7 +131,13 @@ class _HistoryView extends StatelessWidget {
       separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 16 : 12),
       itemBuilder: (context, index) {
         if (index == 0) {
-          return HistoryListHeader(model: model, count: evaluations.length);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SyncBanner(),
+              HistoryListHeader(model: model, count: evaluations.length),
+            ],
+          );
         }
         final evaluation = evaluations[index - 1];
         return EvaluationCard(

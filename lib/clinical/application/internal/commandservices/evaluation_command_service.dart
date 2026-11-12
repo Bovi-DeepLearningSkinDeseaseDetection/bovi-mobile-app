@@ -7,6 +7,7 @@ import '../../../domain/model/value_objects/inference_result.dart';
 import '../../../domain/repositories/evaluation_repository.dart';
 import '../../../infrastructure/catalog/clinical_code_catalog.dart';
 import '../../../infrastructure/storage/evaluation_image_store.dart';
+import '../outboundservices/external_iam_service.dart';
 import '../outboundservices/external_livestock_service.dart';
 
 /// Saves every analysis on the device as soon as its result is ready (HU10)
@@ -17,12 +18,16 @@ class EvaluationCommandService {
   final ClinicalCodeCatalog _codes;
   final ExternalLivestockService _livestock;
 
+  /// Who is signed in; the evaluation belongs to them (HU12, HU14).
+  final ExternalIamService? _iam;
+
   const EvaluationCommandService(
     this._repository,
     this._images,
     this._codes,
-    this._livestock,
-  );
+    this._livestock, [
+    this._iam,
+  ]);
 
   /// Copies the photo to the app storage and saves the evaluation with its
   /// standard codes (HU07), pending of synchronization. Works the same
@@ -40,6 +45,7 @@ class EvaluationCommandService {
         result: result,
         clinicalCodes: _codes.codesFor(result),
         catalogVersion: _codes.version,
+        ownerId: await _iam?.currentFarmerId(),
       ),
     );
   }

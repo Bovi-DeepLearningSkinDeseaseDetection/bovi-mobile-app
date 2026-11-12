@@ -78,40 +78,46 @@ const EvaluationEntitySchema = CollectionSchema(
       type: IsarType.string,
       enumMap: _EvaluationEntityoutcomeEnumValueMap,
     ),
+    r'ownerId': PropertySchema(id: 12, name: r'ownerId', type: IsarType.string),
     r'probabilities': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'probabilities',
       type: IsarType.objectList,
 
       target: r'ClassScoreEmbedded',
     ),
+    r'syncError': PropertySchema(
+      id: 14,
+      name: r'syncError',
+      type: IsarType.string,
+    ),
     r'syncStatus': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _EvaluationEntitysyncStatusEnumValueMap,
     ),
     r'syncedAt': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'syncedAt',
       type: IsarType.dateTime,
     ),
     r'thumbnailFile': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'thumbnailFile',
       type: IsarType.string,
     ),
     r'topLabel': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'topLabel',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
-    r'uuid': PropertySchema(id: 18, name: r'uuid', type: IsarType.string),
+    r'uuid': PropertySchema(id: 20, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _evaluationEntityEstimateSize,
@@ -211,6 +217,19 @@ const EvaluationEntitySchema = CollectionSchema(
         ),
       ],
     ),
+    r'ownerId': IndexSchema(
+      id: -7594796109721319539,
+      name: r'ownerId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'ownerId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
   },
   links: {},
   embeddedSchemas: {
@@ -269,6 +288,12 @@ int _evaluationEntityEstimateSize(
   bytesCount += 3 + object.modelVersion.length * 3;
   bytesCount += 3 + object.origin.name.length * 3;
   bytesCount += 3 + object.outcome.name.length * 3;
+  {
+    final value = object.ownerId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.probabilities.length * 3;
   {
     final offsets = allOffsets[ClassScoreEmbedded]!;
@@ -279,6 +304,12 @@ int _evaluationEntityEstimateSize(
         offsets,
         allOffsets,
       );
+    }
+  }
+  {
+    final value = object.syncError;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   bytesCount += 3 + object.syncStatus.name.length * 3;
@@ -311,18 +342,20 @@ void _evaluationEntitySerialize(
   writer.writeString(offsets[9], object.modelVersion);
   writer.writeString(offsets[10], object.origin.name);
   writer.writeString(offsets[11], object.outcome.name);
+  writer.writeString(offsets[12], object.ownerId);
   writer.writeObjectList<ClassScoreEmbedded>(
-    offsets[12],
+    offsets[13],
     allOffsets,
     ClassScoreEmbeddedSchema.serialize,
     object.probabilities,
   );
-  writer.writeString(offsets[13], object.syncStatus.name);
-  writer.writeDateTime(offsets[14], object.syncedAt);
-  writer.writeString(offsets[15], object.thumbnailFile);
-  writer.writeString(offsets[16], object.topLabel);
-  writer.writeDateTime(offsets[17], object.updatedAt);
-  writer.writeString(offsets[18], object.uuid);
+  writer.writeString(offsets[14], object.syncError);
+  writer.writeString(offsets[15], object.syncStatus.name);
+  writer.writeDateTime(offsets[16], object.syncedAt);
+  writer.writeString(offsets[17], object.thumbnailFile);
+  writer.writeString(offsets[18], object.topLabel);
+  writer.writeDateTime(offsets[19], object.updatedAt);
+  writer.writeString(offsets[20], object.uuid);
 }
 
 EvaluationEntity _evaluationEntityDeserialize(
@@ -361,24 +394,26 @@ EvaluationEntity _evaluationEntityDeserialize(
         offsets[11],
       )] ??
       EvaluationOutcome.healthy;
+  object.ownerId = reader.readStringOrNull(offsets[12]);
   object.probabilities =
       reader.readObjectList<ClassScoreEmbedded>(
-        offsets[12],
+        offsets[13],
         ClassScoreEmbeddedSchema.deserialize,
         allOffsets,
         ClassScoreEmbedded(),
       ) ??
       [];
+  object.syncError = reader.readStringOrNull(offsets[14]);
   object.syncStatus =
       _EvaluationEntitysyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[13],
+        offsets[15],
       )] ??
       SyncStatus.pending;
-  object.syncedAt = reader.readDateTimeOrNull(offsets[14]);
-  object.thumbnailFile = reader.readString(offsets[15]);
-  object.topLabel = reader.readString(offsets[16]);
-  object.updatedAt = reader.readDateTime(offsets[17]);
-  object.uuid = reader.readString(offsets[18]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[16]);
+  object.thumbnailFile = reader.readString(offsets[17]);
+  object.topLabel = reader.readString(offsets[18]);
+  object.updatedAt = reader.readDateTime(offsets[19]);
+  object.uuid = reader.readString(offsets[20]);
   return object;
 }
 
@@ -431,6 +466,8 @@ P _evaluationEntityDeserializeProp<P>(
               EvaluationOutcome.healthy)
           as P;
     case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
       return (reader.readObjectList<ClassScoreEmbedded>(
                 offset,
                 ClassScoreEmbeddedSchema.deserialize,
@@ -439,21 +476,23 @@ P _evaluationEntityDeserializeProp<P>(
               ) ??
               [])
           as P;
-    case 13:
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
       return (_EvaluationEntitysyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.pending)
           as P;
-    case 14:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 15:
-      return (reader.readString(offset)) as P;
     case 16:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 17:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readDateTime(offset)) as P;
+    case 20:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1176,6 +1215,81 @@ extension EvaluationEntityQueryWhere
                 indexName: r'syncStatus',
                 lower: [],
                 upper: [syncStatus],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterWhereClause>
+  ownerIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'ownerId', value: [null]),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterWhereClause>
+  ownerIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'ownerId',
+          lower: [null],
+          includeLower: false,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterWhereClause>
+  ownerIdEqualTo(String? ownerId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'ownerId', value: [ownerId]),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterWhereClause>
+  ownerIdNotEqualTo(String? ownerId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [],
+                upper: [ownerId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [ownerId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [ownerId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ownerId',
+                lower: [],
+                upper: [ownerId],
                 includeUpper: false,
               ),
             );
@@ -2612,6 +2726,165 @@ extension EvaluationEntityQueryFilter
   }
 
   QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'ownerId'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'ownerId'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'ownerId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'ownerId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'ownerId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'ownerId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  ownerIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'ownerId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
   probabilitiesLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'probabilities', length, true, length, true);
@@ -2660,6 +2933,165 @@ extension EvaluationEntityQueryFilter
         includeLower,
         upper,
         includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'syncError'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'syncError'),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'syncError',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'syncError',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'syncError',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'syncError', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterFilterCondition>
+  syncErrorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'syncError', value: ''),
       );
     });
   }
@@ -3534,6 +3966,34 @@ extension EvaluationEntityQuerySortBy
   }
 
   QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortByOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortByOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  sortBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
   sortBySyncStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'syncStatus', Sort.asc);
@@ -3787,6 +4247,34 @@ extension EvaluationEntityQuerySortThenBy
   }
 
   QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenByOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenByOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ownerId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
+  thenBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QAfterSortBy>
   thenBySyncStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'syncStatus', Sort.asc);
@@ -3954,6 +4442,20 @@ extension EvaluationEntityQueryWhereDistinct
   }
 
   QueryBuilder<EvaluationEntity, EvaluationEntity, QDistinct>
+  distinctByOwnerId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'ownerId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QDistinct>
+  distinctBySyncError({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncError', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, EvaluationEntity, QDistinct>
   distinctBySyncStatus({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'syncStatus', caseSensitive: caseSensitive);
@@ -4089,10 +4591,23 @@ extension EvaluationEntityQueryProperty
     });
   }
 
+  QueryBuilder<EvaluationEntity, String?, QQueryOperations> ownerIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'ownerId');
+    });
+  }
+
   QueryBuilder<EvaluationEntity, List<ClassScoreEmbedded>, QQueryOperations>
   probabilitiesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'probabilities');
+    });
+  }
+
+  QueryBuilder<EvaluationEntity, String?, QQueryOperations>
+  syncErrorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncError');
     });
   }
 

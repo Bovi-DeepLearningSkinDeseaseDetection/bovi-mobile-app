@@ -6,6 +6,7 @@ import '../../../domain/model/value_objects/captured_image.dart';
 import '../../../domain/model/value_objects/clinical_code.dart';
 import '../../../domain/model/value_objects/disease_sheet.dart';
 import '../../../domain/model/value_objects/inference_result.dart';
+import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../widgets/result/evaluation_animal_section.dart';
 import '../widgets/result/clinical_codes_card.dart';
 import '../widgets/result/disclaimer_notice.dart';
@@ -85,6 +86,16 @@ class ResultPage extends StatelessWidget {
                         DateFormatters.dayAndTime(evaluation!.createdAt),
                         style: smallText,
                       ),
+                      // HU12: why the backend refused it.
+                      if (evaluation!.syncError != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'No se pudo respaldar: ${evaluation!.syncError}',
+                          style: smallText?.copyWith(
+                            color: AppColors.lesionText,
+                          ),
+                        ),
+                      ],
                     ],
                     if (saving != null) ...[
                       const SizedBox(height: 12),

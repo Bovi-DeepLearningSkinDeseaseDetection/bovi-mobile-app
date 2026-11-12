@@ -138,22 +138,27 @@ class _SyncLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final synced = status == SyncStatus.synced;
+    final (icon, color) = switch (status) {
+      SyncStatus.synced => (Icons.cloud_done_outlined, AppColors.synchronized),
+      SyncStatus.failed => (Icons.cloud_off_outlined, AppColors.lesionStatus),
+      SyncStatus.pending => (
+        Icons.cloud_upload_outlined,
+        AppColors.secondaryText,
+      ),
+    };
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          synced ? Icons.cloud_done_outlined : Icons.cloud_upload_outlined,
-          size: 16,
-          color: synced ? AppColors.synchronized : AppColors.secondaryText,
-        ),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 4),
         Text(
-          synced ? status.label : 'Pendiente',
-          style: const TextStyle(
+          status == SyncStatus.pending ? 'Pendiente' : status.label,
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: AppColors.secondaryText,
+            color: status == SyncStatus.failed
+                ? AppColors.lesionStatus
+                : AppColors.secondaryText,
           ),
         ),
       ],
