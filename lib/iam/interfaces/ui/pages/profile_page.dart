@@ -1,18 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../clinical/interfaces/ui/widgets/help_frame.dart';
 import '../../../../shared/interfaces/ui/theme/app_colors.dart';
 import '../../../../shared/interfaces/ui/widgets/bovi_logo.dart';
 import '../../../../shared/interfaces/ui/widgets/icon_bubble.dart';
+import '../../../domain/model/aggregates/auth_session.dart';
+import '../viewmodels/session_view_model.dart';
 
-/// Profile section: app information, help and settings.
+/// Profile section: the farmer's account, help, settings and sign out.
 class ProfilePage extends StatelessWidget {
   static const slogan = 'Tecnología para un ganado más saludable';
 
   const ProfilePage({super.key});
 
+  static const signOutLabel = 'Cerrar sesión';
+
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Cerrar sesión?'),
+        content: const Text(
+          'Sus evaluaciones se quedan en este celular. Para volver a usar Bovi '
+          'necesitará internet para iniciar sesión.',
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+            child: const Text(signOutLabel),
+          ),
+        ],
+      ),
+    );
+    if ((confirmed ?? false) && context.mounted) {
+      await context.read<SessionViewModel>().signOut();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textTheme = TextTheme.of(context);
+    final farmer = context.select<SessionViewModel, Farmer?>((s) => s.farmer);
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
       body: ListView(
@@ -24,14 +59,27 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const BoviLogo(size: 52),
-                  const SizedBox(height: 16),
-                  Text(
-                    slogan,
-                    style: TextTheme.of(
-                      context,
-                    ).bodyMedium?.copyWith(color: AppColors.bodyText),
+                  const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: BoviLogo(size: 52),
                   ),
+                  const SizedBox(height: 16),
+                  if (farmer != null) ...[
+                    Text(farmer.name, style: textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      farmer.email,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.bodyText,
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      slogan,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.bodyText,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -79,6 +127,23 @@ class ProfilePage extends StatelessWidget {
               ],
             ),
           ),
+          if (farmer != null) ...[
+            const SizedBox(height: 16),
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                leading: const IconBubble(
+                  icon: Icon(Icons.logout_rounded),
+                  size: 44,
+                ),
+                title: const Text(signOutLabel),
+                subtitle: const Text(
+                  'Sus evaluaciones se quedan en el celular',
+                ),
+                onTap: () => _confirmSignOut(context),
+              ),
+            ),
+          ],
         ],
       ),
     );
