@@ -7,10 +7,15 @@ import '../../../clinical/infrastructure/catalog/clinical_code_catalog.dart';
 import '../../../clinical/infrastructure/catalog/disease_sheet_catalog.dart';
 import '../../../clinical/infrastructure/persistence/isar/repositories/isar_evaluation_repository.dart';
 import '../../../clinical/infrastructure/storage/evaluation_image_store.dart';
+import '../../../iam/application/internal/commandservices/auth_command_service.dart';
+import '../../../iam/infrastructure/http/auth_http_gateway.dart';
+import '../../../iam/infrastructure/storage/secure/secure_session_repository.dart';
+import '../../../iam/interfaces/acl/iam_context_facade.dart';
 import '../../../livestock/application/internal/commandservices/animal_command_service.dart';
 import '../../../livestock/application/internal/queryservices/animal_query_service.dart';
 import '../../../livestock/infrastructure/persistence/isar/repositories/isar_animal_repository.dart';
 import '../../../livestock/interfaces/acl/livestock_context_facade.dart';
+import '../network/api_client.dart';
 import '../persistence/isar/local_database.dart';
 
 final locator = GetIt.instance;
@@ -21,6 +26,13 @@ Future<void> setUpServices() async {
   final isar = await LocalDatabase.open();
   final codes = await ClinicalCodeCatalog.load();
   final sheets = await DiseaseSheetCatalog.load();
+
+  // IAM (HU14): one HTTP client for the whole app.
+  final api = createApiClient();
+  final auth = AuthCommandService(
+    AuthHttpGateway(api),
+    SecureSessionRepository(),
+  );
 
   // Livestock (HU15).
   final animals = IsarAnimalRepository(isar);
@@ -33,6 +45,9 @@ Future<void> setUpServices() async {
   final images = EvaluationImageStore();
   final evaluations = IsarEvaluationRepository(isar, images);
   locator
+    ..registerSingleton(api)
+    ..registerSingleton(auth)
+    ..registerSingleton(IamContextFacade(auth))
     ..registerSingleton(codes)
     ..registerSingleton(sheets)
     ..registerSingleton(livestock)
