@@ -12,12 +12,10 @@ class SecureSessionRepository implements SessionRepository {
 
   final FlutterSecureStorage _storage;
 
+  // flutter_secure_storage 10+: by default AES-GCM with its key wrapped by the
+  // Android Keystore (the old encryptedSharedPreferences option was removed).
   SecureSessionRepository([FlutterSecureStorage? storage])
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            aOptions: AndroidOptions(encryptedSharedPreferences: true),
-          );
+    : _storage = storage ?? const FlutterSecureStorage();
 
   @override
   Future<AuthSession?> read() async {
