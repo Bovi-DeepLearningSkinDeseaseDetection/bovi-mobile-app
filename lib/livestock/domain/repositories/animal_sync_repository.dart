@@ -15,4 +15,10 @@ abstract class AnimalSyncRepository {
   });
 
   Future<void> markFailed(String uuid, String ownerId, String reason);
+
+  /// Keeps an animal restored from the cloud (HU13) and returns it with its
+  /// local id. Already on the phone with that uuid: returned as it is. Same
+  /// ear tag with another uuid: it is the same animal, it takes the cloud
+  /// uuid.
+  Future<Animal> restore(Animal cloud, String ownerId);
 }

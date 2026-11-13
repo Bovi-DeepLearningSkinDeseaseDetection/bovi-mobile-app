@@ -11,8 +11,8 @@ enum SessionStatus { loading, signedOut, signedIn }
 /// Who is using the app: decides between the sign in and the main screens.
 class SessionViewModel extends ChangeNotifier {
   static const offlineSignIn =
-      'Sin conexión. Para ingresar por primera vez en este celular necesita '
-      'internet.';
+      'No se pudo conectar con el servidor de Bovi. Revise su internet: para '
+      'ingresar por primera vez en este celular necesita conexión.';
 
   final AuthCommandService _auth;
 

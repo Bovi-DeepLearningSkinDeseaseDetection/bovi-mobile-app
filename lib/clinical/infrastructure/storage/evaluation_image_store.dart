@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../domain/services/evaluation_photo_store.dart';
+
 /// Keeps a compressed copy of each analyzed photo and its thumbnail in the
 /// app documents, so the history does not depend on the original file.
-class EvaluationImageStore {
+class EvaluationImageStore implements EvaluationPhotoStore {
   static const _folder = 'evaluations';
 
   // Longest side of the stored photo and of the thumbnail. A 1280 px JPEG at
@@ -28,6 +31,7 @@ class EvaluationImageStore {
   }
 
   /// Absolute path of a stored file.
+  @override
   Future<String> pathOf(String fileName) async =>
       p.join((await directory()).path, fileName);
 
@@ -52,6 +56,32 @@ class EvaluationImageStore {
       File(p.join(folder, thumbnail)).writeAsBytesSync(
         img.encodeJpg(
           _fit(upright, _thumbnailSide),
+          quality: _thumbnailQuality,
+        ),
+      );
+    });
+    return (image: image, thumbnail: thumbnail);
+  }
+
+  /// The photo came from the cloud already compressed: it is kept as it is
+  /// and only the thumbnail is made.
+  @override
+  Future<({String image, String thumbnail})> saveDownloaded(
+    Uint8List bytes,
+    String id,
+  ) async {
+    final folder = (await directory()).path;
+    final image = '$id.jpg';
+    final thumbnail = '${id}_thumb.jpg';
+    await File(p.join(folder, image)).writeAsBytes(bytes, flush: true);
+    await Isolate.run(() {
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) {
+        throw const FormatException('The image format is not supported.');
+      }
+      File(p.join(folder, thumbnail)).writeAsBytesSync(
+        img.encodeJpg(
+          _fit(img.bakeOrientation(decoded), _thumbnailSide),
           quality: _thumbnailQuality,
         ),
       );

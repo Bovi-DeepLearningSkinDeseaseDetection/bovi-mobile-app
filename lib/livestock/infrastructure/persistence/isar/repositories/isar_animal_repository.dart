@@ -125,4 +125,27 @@ class IsarAnimalRepository implements AnimalRepository, AnimalSyncRepository {
         entity.updatedAt = DateTime.now();
         await _isar.animals.put(entity);
       });
+  @override
+  Future<Animal> restore(Animal cloud, String ownerId) async {
+    final byUuid = await _isar.animals.getByUuid(cloud.uuid);
+    if (byUuid != null) return _toDomain(byUuid);
+    // The same ear tag saved on this phone is the same animal: the cloud
+    // version wins and the local row takes its uuid.
+    final entity =
+        await _isar.animals.getByEarTag(cloud.earTag.value) ?? AnimalEntity();
+    entity
+      ..earTag = cloud.earTag.value
+      ..breed = cloud.breed
+      ..sex = cloud.sex
+      ..createdAt = cloud.createdAt;
+    entity
+      ..uuid = cloud.uuid
+      ..updatedAt = DateTime.now()
+      ..syncStatus = SyncStatus.synced
+      ..syncedAt = DateTime.now()
+      ..ownerId = ownerId
+      ..syncError = null;
+    await _isar.writeTxn(() => _isar.animals.put(entity));
+    return _toDomain(entity);
+  }
 }

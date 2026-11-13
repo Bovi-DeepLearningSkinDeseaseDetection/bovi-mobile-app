@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'clinical/application/internal/commandservices/cloud_sync_service.dart';
 import 'clinical/domain/repositories/evaluation_sync_repository.dart';
 import 'clinical/interfaces/ui/viewmodels/cloud_sync_view_model.dart';
+import 'clinical/interfaces/ui/widgets/restore_offer.dart';
 import 'iam/application/internal/commandservices/auth_command_service.dart';
 import 'iam/interfaces/ui/pages/auth_gate.dart';
 import 'iam/interfaces/ui/viewmodels/session_view_model.dart';
@@ -60,7 +61,8 @@ class _SignedInApp extends StatelessWidget {
         // The backend no longer accepts the session: back to the sign in.
         onSignedOut: context.read<SessionViewModel>().load,
       )..start(),
-      child: const HomeShell(),
+      // HU13: on a phone without the farmer's data, offer the restore.
+      child: const RestoreOffer(child: HomeShell()),
     );
   }
 }

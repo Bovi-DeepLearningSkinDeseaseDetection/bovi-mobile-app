@@ -22,4 +22,16 @@ class ApplicationPreferences {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setBool(_helpFrameSeenKey, true);
   }
+
+  /// The farmer answered "Ahora no" to restoring the history (HU13): it is
+  /// not offered again on this phone, but stays in the profile.
+  Future<bool> hasDeclinedRestore(String farmerId) async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getBool('restore_declined_$farmerId') ?? false;
+  }
+
+  Future<void> declineRestore(String farmerId) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('restore_declined_$farmerId', true);
+  }
 }

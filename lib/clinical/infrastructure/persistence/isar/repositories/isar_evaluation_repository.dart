@@ -9,6 +9,7 @@ import '../../../../domain/model/value_objects/clinical_code.dart';
 import '../../../../domain/model/value_objects/evaluation_outcome.dart';
 import '../../../../domain/model/value_objects/inference_result.dart';
 import '../../../../domain/repositories/evaluation_repository.dart';
+import '../../../../domain/repositories/evaluation_restore_repository.dart';
 import '../../../../domain/repositories/evaluation_sync_repository.dart';
 import '../../../../../shared/domain/model/sync_status.dart';
 import '../../../storage/evaluation_image_store.dart';
@@ -16,7 +17,10 @@ import '../entities/evaluation_entity.dart';
 
 /// Stores the evaluations in the `evaluations` Isar collection.
 class IsarEvaluationRepository
-    implements EvaluationRepository, EvaluationSyncRepository {
+    implements
+        EvaluationRepository,
+        EvaluationSyncRepository,
+        EvaluationRestoreRepository {
   final Isar _isar;
   final EvaluationImageStore _images;
 
@@ -221,6 +225,13 @@ class IsarEvaluationRepository
       await _isar.evaluations.put(entity);
     }
   });
+  @override
+  Future<bool> exists(String uuid) async =>
+      await _isar.evaluations.getByUuid(uuid) != null;
+
+  @override
+  Future<int> countOwnedBy(String ownerId) =>
+      _isar.evaluations.filter().ownerIdEqualTo(ownerId).count();
 }
 
 typedef _Condition =
