@@ -199,7 +199,13 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).last,
       );
-      expect(find.textContaining('São Paulo, Brasil'), findsOneWidget);
+      expect(find.textContaining('Ohio, Estados Unidos'), findsOneWidget);
+      // And where to exercise the rights over the data.
+      await tester.scrollUntilVisible(
+        find.textContaining(ConsentText.contactEmail),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.text('Acepto'));
       await tester.pumpAndSettle();
       await submit(tester);
