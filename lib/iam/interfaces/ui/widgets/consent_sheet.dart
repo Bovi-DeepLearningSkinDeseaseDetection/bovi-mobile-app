@@ -11,14 +11,13 @@ class ConsentText {
 
   static const version = '2026.1';
   static const title = 'Consentimiento de tratamiento de datos';
-  static const contactEmail = 'u202113612@upc.edu.pe';
+  static const contactEmail = 'XXXX@XXXX';
 
   static const sections = <(String, String)>[
     (
       'Quién trata sus datos',
-      'El equipo del proyecto Bovi (Universidad Peruana de Ciencias '
-          'Aplicadas), un prototipo académico de detección preliminar de '
-          'enfermedades de la piel del ganado.',
+      'El equipo del proyecto Bovi (XXXX), un prototipo académico de '
+          'detección preliminar de enfermedades de la piel del ganado.',
     ),
     (
       'Qué datos',

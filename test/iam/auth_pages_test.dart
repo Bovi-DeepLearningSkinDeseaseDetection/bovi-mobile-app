@@ -195,11 +195,11 @@ void main() {
       expect(find.text(ConsentText.title), findsOneWidget);
       // The international transfer is told before accepting (Ley N.° 29733).
       await tester.scrollUntilVisible(
-        find.text('Dónde se guardan'),
+        find.textContaining('Ohio, Estados Unidos'),
         200,
         scrollable: find.byType(Scrollable).last,
       );
-      expect(find.textContaining('Ohio, Estados Unidos'), findsOneWidget);
+      expect(find.text('Dónde se guardan'), findsOneWidget);
       // And where to exercise the rights over the data.
       await tester.scrollUntilVisible(
         find.textContaining(ConsentText.contactEmail),
