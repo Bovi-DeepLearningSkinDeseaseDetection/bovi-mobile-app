@@ -11,6 +11,7 @@ class ConsentText {
 
   static const version = '2026.1';
   static const title = 'Consentimiento de tratamiento de datos';
+  static const contactEmail = 'u202113612@upc.edu.pe';
 
   static const sections = <(String, String)>[
     (
@@ -34,9 +35,9 @@ class ConsentText {
     ),
     (
       'Dónde se guardan',
-      'En servidores de Amazon Web Services en São Paulo, Brasil. Al aceptar, '
-          'autoriza esta transferencia fuera del Perú. Toda la comunicación '
-          'viaja cifrada.',
+      'En servidores de Amazon Web Services en Ohio, Estados Unidos. Al '
+          'aceptar, autoriza esta transferencia fuera del Perú. Toda la '
+          'comunicación viaja cifrada.',
     ),
     (
       'Por cuánto tiempo',
@@ -45,7 +46,8 @@ class ConsentText {
     (
       'Sus derechos',
       'Puede pedir el acceso, la corrección o la eliminación de sus datos, u '
-          'oponerse a su tratamiento, a los responsables del proyecto Bovi.',
+          'oponerse a su tratamiento, escribiendo a los responsables del '
+          'proyecto Bovi: ${ConsentText.contactEmail}',
     ),
     (
       'Importante',
